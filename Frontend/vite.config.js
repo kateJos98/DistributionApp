@@ -1,31 +1,13 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  plugins: [
-    react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
-      manifest: {
-        name: 'Distribución de Gas',
-        short_name: 'GasApp',
-        description: 'Sistema inteligente de distribución de gas',
-        theme_color: '#ffffff',
-        icons: [
-          {
-            src: 'icon-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: 'icon-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-        ]
-      }
-    })
-  ],
-})
+  plugins: [react()],
+  server: {
+    port: 3000,
+    proxy: {
+      "/auth": "http://localhost:8001",
+      "/validate-role": "http://localhost:8000"
+    }
+  }
+});

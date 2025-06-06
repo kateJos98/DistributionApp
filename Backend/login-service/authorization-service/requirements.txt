@@ -1,5 +1,4 @@
 fastapi
-python-dotenv
-python-jose[cryptography]
 uvicorn
+python-dotenv
 PyJWT

@@ -1,7 +1,10 @@
 import jwt
+import jwt
 import os
 from fastapi import HTTPException
+from dotenv import load_dotenv
 
+load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "mysecret")
 
 def verify_role(token: str, required_role: str) -> bool:

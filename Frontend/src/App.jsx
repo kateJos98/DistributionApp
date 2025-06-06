@@ -1,16 +1,48 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './components/Login';
-// Aquí luego añadiremos las vistas como RegisterClient, Dashboard, etc.
+import { Routes, Route, Navigate } from "react-router-dom";
+import LoginForm from "./components/LoginForm";
+import RegisterForm from "./components/RegisterForm";
+import DashboardRouter from "./components/Dashboard/DashboardRouter";
+import { getToken, clearToken } from "./utils/storage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-function App() {
+export default function App() {
+  const loggedIn = !!getToken();
+
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        {/* Otras rutas futuras */}
-      </Routes>
-    </Router>
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          loggedIn ? <Navigate to="/dashboard" /> : <LoginForm />
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          loggedIn ? <Navigate to="/dashboard" /> : (
+            <RegisterForm
+              onRegisterSuccess={() => {
+                alert("Registro exitoso. Ahora inicia sesión.");
+                window.location.href = "/login";
+              }}
+            />
+          )
+        }
+      />
+      <Route
+        path="/dashboard/*"
+        element={
+          <ProtectedRoute>
+            <DashboardRouter
+              onLogout={() => {
+                clearToken();
+                window.location.href = "/login";
+              }}
+            />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/login" />} />
+    </Routes>
   );
 }
-
-export default App;

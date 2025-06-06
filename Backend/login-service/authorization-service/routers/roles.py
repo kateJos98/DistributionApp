@@ -7,7 +7,7 @@ router = APIRouter()
 def validate_role(required_role: str, authorization: str = Header(...)):
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=400, detail="Token inválido")
-    
+
     token = authorization.split(" ")[1]
     if verify_role(token, required_role):
         return {"message": "Acceso permitido"}

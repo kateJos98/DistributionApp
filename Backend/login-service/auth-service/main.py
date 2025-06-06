@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from database import create_tables, get_db
 from routers import login
 from models.user import User
@@ -6,6 +7,14 @@ from services.jwt_service import hash_password
 import os
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # ⚠️ Reemplaza con dominio específico en producción
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(login.router, prefix="/auth", tags=["Login"])
 

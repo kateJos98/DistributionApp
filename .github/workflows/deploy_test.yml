@@ -19,17 +19,17 @@ jobs:
       # Construir y subir imágenes
       - name: Build and push auth-service
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-service:latest ./backend/login-service/auth-service
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-service:latest ./BackEnd/login-service/auth-service
           docker push ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
 
       - name: Build and push authorization-service
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest ./backend/login-service/authorization-service
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest ./BackEnd/login-service/authorization-service
           docker push ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
 
       - name: Build and push customer-service
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/customer-service:latest ./backend/customer-service
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/customer-service:latest ./BackEnd/customer-service
           docker push ${{ secrets.DOCKER_USERNAME }}/customer-service:latest
 
       # Conexión SSH y despliegue en EC2

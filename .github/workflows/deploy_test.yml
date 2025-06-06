@@ -26,11 +26,7 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest ./Backend/login-service/authorization-service
           docker push ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
 
-      - name: Build and push customer-service
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/customer-service:latest ./Backend/customer-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/customer-service:latest
-
+      
   deploy:
     name: Deploy Docker Containers to EC2
     runs-on: ubuntu-latest
@@ -50,13 +46,13 @@ jobs:
             sudo systemctl start docker
             sudo systemctl enable docker
 
-            docker stop auth-service authorization-service customer-service || true
-            docker rm auth-service authorization-service customer-service || true
+            docker stop auth-service authorization-service  || true
+            docker rm auth-service authorization-service  || true
             
             docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
-            docker pull ${{ secrets.DOCKER_USERNAME }}/customer-service:latest
+            
 
             docker run -d -p 8001:8001 --name auth-service ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
             docker run -d -p 8002:8002 --name authorization-service ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
-            docker run -d -p 8000:8000 --name customer-service ${{ secrets.DOCKER_USERNAME }}/customer-service:latest
+        

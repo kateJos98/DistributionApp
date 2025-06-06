@@ -1,0 +1,36 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - test
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v3
+
+    - name: Copiar archivos al servidor EC2
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        source: "./backend"
+        target: "/home/ubuntu/app"
+
+    - name: Ejecutar contenedores en EC2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          cd /home/ubuntu/app/backend
+          docker-compose down
+          docker-compose up -d --build
+

@@ -20,3 +20,4 @@ def verify_token(token: str):
         return None
     except jwt.InvalidTokenError:
         return None
+    

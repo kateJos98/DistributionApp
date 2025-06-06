@@ -1,0 +1,60 @@
+name: Deploy Microservices to EC2
+
+on:
+  push:
+    branches:
+      - test  # o la rama que uses
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      # Construir y subir imágenes
+      - name: Build and push auth-service
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-service:latest ./backend/auth-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+
+      - name: Build and push authorization-service
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest ./backend/authorization-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+
+      - name: Build and push customer-service
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/customer-service:latest ./backend/customer-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/customer-service:latest
+
+      # Conexión SSH y despliegue en EC2
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST_LOGIN_TEST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo apt update -y
+            sudo apt install docker.io -y
+            sudo systemctl start docker
+            sudo systemctl enable docker
+
+            # Detener contenedores existentes
+            docker stop auth-service authorization-service customer-service || true
+            docker rm auth-service authorization-service customer-service || true
+
+            # Descargar imágenes
+            docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/customer-service:latest
+
+            # Ejecutar contenedores
+            docker run -d -p 8001:8001 --name auth-service ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+            docker run -d -p 8002:8002 --name authorization-service ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+            docker run -d -p 8000:8000 --name customer-service ${{ secrets.DOCKER_USERNAME }}/customer-service:latest

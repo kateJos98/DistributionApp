@@ -5,6 +5,7 @@ from routers import login
 from models.user import User
 from services.jwt_service import hash_password
 import os
+import bcrypt
 
 app = FastAPI()
 
@@ -39,3 +40,9 @@ def startup_event():
         print(f"✅ Usuario admin creado: {admin_username}")
     else:
         print("🟡 Usuario admin ya existe")
+        
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))

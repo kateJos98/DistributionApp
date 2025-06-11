@@ -4,10 +4,12 @@ from database import create_tables, get_db
 from routers import login
 from models.user import User
 from services.hash_service import hash_password
+from dotenv import load_dotenv
 import os
-import bcrypt
 
 app = FastAPI()
+
+load_dotenv()
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,11 +29,14 @@ def startup_event():
     # Crear admin con credenciales desde .env si no existe
     admin_username = os.getenv("ADMIN_USERNAME")
     admin_password = os.getenv("ADMIN_PASSWORD")
+    admin_email = os.getenv("ADMIN_EMAIL")
+
 
     existing_admin = db.query(User).filter(User.username == admin_username).first()
     if not existing_admin:
         new_admin = User(
             username=admin_username,
+            email=admin_email,
             password=hash_password(admin_password),
             role="admin"
         )

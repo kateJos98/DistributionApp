@@ -1,0 +1,30 @@
+services:
+  postgres-db:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    networks:
+      - auth-net
+
+  auth-service:
+    image: katyjoseth719/auth-service:latest
+    container_name: auth-service
+    depends_on:
+      - postgres-db
+
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://myuser:mypassword@postgres-db:5432/mydb
+    ports:
+      - "8001:8001"
+    networks:
+      - auth-net
+
+networks:
+  auth-net:

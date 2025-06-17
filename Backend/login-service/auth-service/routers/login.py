@@ -1,41 +1,32 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from models.user import User
-from schemas.login_schema import UserCreate, LoginRequest
-from services.jwt_service import verify_token, create_jwt
-from services.hash_service import hash_password, verify_password
+from passlib.context import CryptContext
 from database import get_db
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
+from models.user import User
+from services.jwt_service import create_access_token
+import requests
 
 router = APIRouter()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-@router.post("/create-user")
-def create_user(user_data: UserCreate, authorization: str = Header(...), db: Session = Depends(get_db)):
-    token = authorization.replace("Bearer ", "")
-    payload = verify_token(token)
-    if not payload or payload.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="No autorizado")
+@router.post("/auth/login")
+def login(username: str, password: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == username).first()
+    if not user or not pwd_context.verify(password, user.password):
+        raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
-    existing_user = db.query(User).filter(User.username == user_data.username).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Usuario ya existe")
+    # Aquí va la llamada al authorization-service para validar roles
+    access_token = create_access_token({"sub": user.username, "role": user.role})
+    response = requests.post("http://authorization-service:8002/validate-role", headers={
+        "Authorization": f"Bearer {access_token}"
+    })
 
-    new_user = User(
-        username=user_data.username,
-        email=user_data.email,
-        password=hash_password(user_data.password),
-        role=user_data.role
-    )
-    db.add(new_user)
-    db.commit()
-    return {"message": "Usuario creado exitosamente"}
+    if response.status_code != 200:
+        raise HTTPException(status_code=403, detail="Acceso denegado")
 
-@router.post("/login")
-def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == login_data.username).first()
-    if not user or not verify_password(login_data.password, user.password):
-        raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
-
-    token = create_jwt(user)
-    return {"access_token": token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user.username,
+        "role": user.role
+    }

@@ -10,7 +10,7 @@ const getAuth = () => {
 
 /**
  * Component that protects routes according to role
- * @param {Array} allowedRoles - List of allowed roles (["admin"], ["client"], etc.)
+ * @param {Array} allowedRoles -Ejemplo: [Roles.ADMIN], [Roles.CLIENTE]
  */
 export default function PrivateRoute({ allowedRoles }) {
   const { token, role } = getAuth();

@@ -18,3 +18,10 @@ def get_db():
         yield db
     finally:
         db.close()
+        
+
+def create_tables():
+    from models.user import Base
+    print("⏳ Creando tablas...")
+    Base.metadata.create_all(bind=engine)
+    print("✅ Tablas creadas correctamente.")

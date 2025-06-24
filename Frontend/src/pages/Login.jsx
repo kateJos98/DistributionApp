@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { login } from "../services/authService";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
+
+
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -9,6 +13,18 @@ export default function Login() {
   const [token, setToken] = useState("");
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+    if (token && role) {
+      if (role === "admin") navigate("/admin-dashboard");
+      else if (role === "cliente") navigate("/cliente-dashboard");
+      else if (role === "repartidor") navigate("/repartidor-dashboard");
+    }
+  }, []);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,6 +56,7 @@ export default function Login() {
     }
   };
 
+
   return (
     <div style={{ maxWidth: 400, margin: "50px auto" }}>
       <h2>Iniciar sesión</h2>
@@ -65,6 +82,16 @@ export default function Login() {
         </button>
       </form>
 
+      <p style={{ marginTop: "15px", textAlign: "center" }}>
+        ¿No tienes cuenta?
+        <br />
+        <Link to="/SelectRegister" style={{ color: "#007BFF" }}>
+          Regístrate aquí
+        </Link>
+
+      </p>
+      
+
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {token && (
@@ -75,4 +102,5 @@ export default function Login() {
       )}
     </div>
   );
+  
 }

@@ -1,25 +1,32 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
-from database import get_db
+from database import Base, engine, get_db
 from models.user import User
+from schemas.user_schema import LoginRequest
 from services.jwt_service import create_access_token
 import requests
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-@router.post("/auth/login")
-def login(username: str, password: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == username).first()
-    if not user or not pwd_context.verify(password, user.password):
+print("⏳ Creando tablas...")
+Base.metadata.create_all(bind=engine)
+print("✅ Tablas creadas correctamente.")
+
+@router.post("/login")
+def login(data: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == data.username).first()
+    if not user or not pwd_context.verify(data.password, user.password):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
-    # Aquí va la llamada al authorization-service para validar roles
     access_token = create_access_token({"sub": user.username, "role": user.role})
-    response = requests.post("http://authorization-service:8002/validate-role", headers={
+    response = requests.get(
+    "http://authorization-service:8002/validate-role",
+    headers={
         "Authorization": f"Bearer {access_token}"
-    })
+    }
+)
 
     if response.status_code != 200:
         raise HTTPException(status_code=403, detail="Acceso denegado")

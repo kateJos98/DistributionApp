@@ -1,9 +1,9 @@
 // src/services/authService.js
 import axios from "axios";
 
-export async function login(username, password) {
+export async function login(email, password) {
   const response = await axios.post("http://localhost:8001/auth/login", {
-    username,
+    email,
     password,
   });
 

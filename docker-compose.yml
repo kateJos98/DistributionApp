@@ -26,6 +26,7 @@ services:
       - ./Backend/login-service/auth-service/.env
     depends_on:
       - postgres-db
+      - kafka
     networks:
       - app-network
   
@@ -53,6 +54,17 @@ services:
       DB_USER: root
       DB_PASS: secret
       KAFKA_BROKER: kafka:9092
+    networks:
+      - app-network
+  
+  delete-customer:
+    build: ./Backend/customer_service/Delete_Customer
+    container_name: delete-customer
+    ports:
+      - "8004:8004"
+    depends_on:
+      - mysql-customer
+      - kafka
     networks:
       - app-network
 
@@ -95,6 +107,8 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - app-network
+
+ 
 
   frontend:
     build: ./frontend

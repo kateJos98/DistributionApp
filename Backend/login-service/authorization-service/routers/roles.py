@@ -10,4 +10,4 @@ def validate_user_role(authorization: str = Header(...)):
     if not user_data:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
 
-    return {"username": user_data["username"], "role": user_data["role"]}
+    return {"email": user_data["email"], "role": user_data["role"]}

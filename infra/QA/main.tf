@@ -1,68 +1,50 @@
-provider "aws" {
-  region = var.aws_region
+resource "aws_vpc" "main_vpc" {
+  cidr_block = "10.0.0.0/16"
 }
 
-# ----------------------
-# Red (VPC, Subnet, IGW, Routing)
-# ----------------------
-resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "${var.project_tag}-vpc"
-  }
-}
-
-resource "aws_subnet" "public_subnet" {
-  vpc_id                  = aws_vpc.main.id
+resource "aws_subnet" "qa_subnet" {
+  vpc_id                  = aws_vpc.main_vpc.id
   cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
+}
 
-  tags = {
-    Name = "${var.project_tag}-public-subnet"
-  }
+resource "aws_subnet" "prod_subnet" {
+  vpc_id                  = aws_vpc.main_vpc.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
 }
 
 resource "aws_internet_gateway" "gw" {
-  vpc_id = aws_vpc.main.id
-  tags = {
-    Name = "${var.project_tag}-igw"
-  }
+  vpc_id = aws_vpc.main_vpc.id
 }
 
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.main.id
+resource "aws_route_table" "route" {
+  vpc_id = aws_vpc.main_vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.gw.id
   }
-
-  tags = {
-    Name = "${var.project_tag}-public-rt"
-  }
 }
 
-resource "aws_route_table_association" "public_assoc" {
-  subnet_id      = aws_subnet.public_subnet.id
-  route_table_id = aws_route_table.public_rt.id
+resource "aws_route_table_association" "qa_assoc" {
+  subnet_id      = aws_subnet.qa_subnet.id
+  route_table_id = aws_route_table.route.id
 }
 
+resource "aws_route_table_association" "prod_assoc" {
+  subnet_id      = aws_subnet.prod_subnet.id
+  route_table_id = aws_route_table.route.id
+}
 
-
-
-# ----------------------
-# Security Group
-# ----------------------
-resource "aws_security_group" "nginx_sg" {
-  name        = "${var.project_tag}-sg"
-  description = "Allow SSH and HTTP"
-  vpc_id      = aws_vpc.main.id
+resource "aws_security_group" "microservice_sg" {
+  name        = "microservice-sg"
+  description = "Allow SSH and app ports"
+  vpc_id      = aws_vpc.main_vpc.id
 
   ingress {
-    description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -70,9 +52,8 @@ resource "aws_security_group" "nginx_sg" {
   }
 
   ingress {
-    description = "HTTP + App Ports"
-    from_port   = 80
-    to_port     = 9000
+    from_port   = 8000
+    to_port     = 8005
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -83,26 +64,36 @@ resource "aws_security_group" "nginx_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
 
+resource "aws_instance" "qa_instance" {
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.qa_subnet.id
+  vpc_security_group_ids = [aws_security_group.microservice_sg.id]
+  key_name               = var.key_name
   tags = {
-    Name = "${var.project_tag}-sg"
+    Name = "qa-auth-service"
   }
 }
 
-
-# ----------------------
-# EC2 NGINX Reverse Proxy Instance
-# ----------------------
-resource "aws_instance" "nginx_instance" {
-  ami                         = var.ami
-  instance_type               = var.instance_type
-  subnet_id                   = aws_subnet.public_subnet.id
-  key_name                    = var.key_pair  
-  vpc_security_group_ids      = [aws_security_group.nginx_sg.id]
-
-
+resource "aws_instance" "prod_instance" {
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.prod_subnet.id
+  vpc_security_group_ids = [aws_security_group.microservice_sg.id]
+  key_name               = var.key_name
   tags = {
-    Name = "${var.project_tag}-nginx"
+    Name = "prod-create-customer"
   }
 }
 
+resource "aws_eip" "qa_ip" {
+  instance = aws_instance.qa_instance.id
+  vpc      = true
+}
+
+resource "aws_eip" "prod_ip" {
+  instance = aws_instance.prod_instance.id
+  vpc      = true
+}

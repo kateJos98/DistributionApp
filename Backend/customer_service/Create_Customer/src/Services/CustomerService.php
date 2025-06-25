@@ -15,7 +15,9 @@ class CustomerService {
             if ($repo->save($data)) {
                 KafkaProducer::publish($_ENV['KAFKA_TOPIC'], [
                     "username" => $data['username'],
-                    "email" => $data['email']
+                    "email" => $data['email'],
+                    "password" => $data['password'],
+                    "role"     => "cliente"
                 ]);
                 return true;
             }

@@ -3,13 +3,12 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "key_pair" {
+variable "key_name" {
   description = "Nombre del par de claves EC2 para acceso SSH"
   type        = string
-  default = "mi-clave-ec2"
 }
 
-variable "ami" {
+variable "ami_id" {
   description = "AMI de Ubuntu 22.04"
   default     = "ami-0c02fb55956c7d316"
 }

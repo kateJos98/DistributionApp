@@ -16,24 +16,17 @@ print("✅ Tablas creadas correctamente.")
 
 @router.post("/login")
 def login(data: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == data.username).first()
+    user = db.query(User).filter(User.email == data.email).first()
     if not user or not pwd_context.verify(data.password, user.password):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
-    access_token = create_access_token({"sub": user.username, "role": user.role})
-    response = requests.get(
-    "http://authorization-service:8002/validate-role",
-    headers={
-        "Authorization": f"Bearer {access_token}"
-    }
-)
-
-    if response.status_code != 200:
-        raise HTTPException(status_code=403, detail="Acceso denegado")
+    access_token = create_access_token({"sub": user.email, "role": user.role})
+   
 
     return {
         "access_token": access_token,
         "token_type": "bearer",
         "user": user.username,
+        "email":user.email,
         "role": user.role
     }

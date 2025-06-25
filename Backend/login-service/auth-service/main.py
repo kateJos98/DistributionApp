@@ -1,14 +1,26 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
 from routers.login import router as login_router
 from database import create_tables, get_db
 from fastapi.middleware.cors import CORSMiddleware
 from models.user import User
 from services.hash_service import hash_password
 from routers import protected_routes 
-
+import threading
+from kafka_consumer import consume_user_created, consume_user_deleted
+from dotenv import load_dotenv
 import os
 
+load_dotenv()
+
 app = FastAPI()
+
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+if ENVIRONMENT == "development":
+    origins = ["*"]
+else:
+    # 🛡️ SOLO tu frontend real en producción
+    origins = ["https://mi-frontend.com"]
 
 # CORS para permitir frontend
 app.add_middleware(
@@ -26,6 +38,12 @@ app.include_router(protected_routes.router)
 def startup_event():
     create_tables()
     db = next(get_db())
+    
+    print("📥 Iniciando consumidor Kafka para customer_created")
+    threading.Thread(target=consume_user_created, daemon=True).start()
+
+    print("📥 Iniciando consumidor Kafka para customer_deleted")
+    threading.Thread(target=consume_user_deleted, daemon=True).start()
 
     # Obtener datos desde .env
     admin_username = os.getenv("ADMIN_USERNAME", "admin")
@@ -46,7 +64,3 @@ def startup_event():
     else:
         print("🟡 Usuario admin ya existe")
         
-        
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)

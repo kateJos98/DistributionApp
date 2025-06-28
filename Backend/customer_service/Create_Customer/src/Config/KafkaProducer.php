@@ -27,7 +27,7 @@ class KafkaProducer {
 
         $topic->produce(RD_KAFKA_PARTITION_UA, 0, $payload);
 
-        $result = $producer->flush(1000);
+        $result = $producer->flush(5000);
         if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
             throw new Exception("❌ Error al hacer flush del mensaje a Kafka");
         }

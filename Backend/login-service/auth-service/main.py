@@ -7,7 +7,7 @@ from models.user import User
 from services.hash_service import hash_password
 from routers import protected_routes 
 import threading
-from kafka_consumer import consume_user_created, consume_user_deleted
+from kafka_consumer import consume_user_created, consume_user_deleted, consume_user_updated
 from dotenv import load_dotenv
 import os
 
@@ -44,6 +44,9 @@ def startup_event():
 
     print("📥 Iniciando consumidor Kafka para customer_deleted")
     threading.Thread(target=consume_user_deleted, daemon=True).start()
+    
+    print("📥 Iniciando consumidor Kafka para customer_update")
+    threading.Thread(target=consume_user_updated, daemon=True).start()
 
     # Obtener datos desde .env
     admin_username = os.getenv("ADMIN_USERNAME", "admin")

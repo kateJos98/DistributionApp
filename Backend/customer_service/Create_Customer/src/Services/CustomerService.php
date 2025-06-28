@@ -12,11 +12,12 @@ class CustomerService {
         $repo = new CustomerRepository($db);
 
         try {
-            if ($repo->save($data)) {
+            $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+            if ($repo->save(array_merge($data, ['password' => $hashedPassword]))) {
                 KafkaProducer::publish($_ENV['KAFKA_TOPIC'], [
                     "username" => $data['username'],
-                    "email" => $data['email'],
-                    "password" => $data['password'],
+                    "email"    => $data['email'],
+                    "password" => $data['password'], 
                     "role"     => "cliente"
                 ]);
                 return true;

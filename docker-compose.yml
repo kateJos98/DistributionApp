@@ -68,6 +68,39 @@ services:
     networks:
       - app-network
 
+  update-customer:
+    build: ./Backend/customer_service/Update_Customer
+    container_name: update-customer
+    restart: always
+    ports:
+      - "8010:80"  
+    env_file:
+      - ./Backend/customer_service/Update_Customer/.env
+    depends_on:
+      - mysql-customer
+      - kafka
+    networks:
+      - app-network
+
+  view-customer:
+    container_name: view-customer
+    build:
+      context: ./Backend/customer_service/View_Customer
+    ports:
+      - "8020:8020"
+    environment:
+      - PORT=8020
+      - DB_HOST=mysql-customer
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - DB_NAME=customer_db
+      - AUTH_SERVICE_URL=http://authorization-service:8002/validate-role
+    depends_on:
+      - mysql-customer
+      - authorization-service
+    networks:
+      - app-network
+
   mysql-customer:
     image: mysql:8.0
     container_name: mysql-customer

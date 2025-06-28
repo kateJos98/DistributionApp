@@ -47,23 +47,22 @@ jobs:
             sudo systemctl start docker
             sudo systemctl enable docker
 
-            docker stop auth-service authorization-service  || true
-            docker rm auth-service authorization-service  || true
-            
-            docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-            docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
-            
-
-            docker run -d -p 8001:8001 --name auth-service ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-            docker run -d -p 8002:8002 --name authorization-service ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
-        
-
             docker stop create-customer delete-customer  || true
             docker rm create-customer  delete-customer  || true
             
             docker pull ${{ secrets.DOCKER_USERNAME }}/create-customer :latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest 
 
-            docker run -d -p 8001:8001 --name create-customer  ${{ secrets.DOCKER_USERNAME }}/create-customer :latest
-            docker run -d -p 8002:8002 --name delete-customer  ${{ secrets.DOCKER_USERNAME }}/delete-customer :latest
+            docker run -d -p 8003:80 --name create-customer  ${{ secrets.DOCKER_USERNAME }}/create-customer :latest
+            docker run -d -p 8004:8004 --name delete-customer  ${{ secrets.DOCKER_USERNAME }}/delete-customer :latest
+       
         #katyjoseth719
+        #docker stop auth-service authorization-service  || true
+        #docker rm auth-service authorization-service  || true
+            
+        #docker pull ${ secrets.DOCKER_USERNAME }}/auth-service:latest
+        #docker pull ${ secrets.DOCKER_USERNAME }}/authorization-service:latest
+            
+
+        #docker run -d -p 8001:8001 --name auth-service ${ secrets.DOCKER_USERNAME }}/auth-service:latest
+        #docker run -d -p 8002:8002 --name authorization-service ${ secrets.DOCKER_USERNAME }}/authorization-service:latest

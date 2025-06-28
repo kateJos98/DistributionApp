@@ -73,36 +73,46 @@ def consume_user_created():
         except Exception as e:
             print(f"❌ Error al procesar evento Kafka: {e}")
             
-def consume_user_deleted():
-    print("📥 Iniciando consumidor Kafka para customer_deleted")
+def consume_user_updated():
+    print("📥 Iniciando consumidor Kafka para customer_update")
 
-    consumer = conectar_kafka("auth-delete-group")
+    consumer = conectar_kafka("auth-update-group")
     if not consumer:
-        print("❌ No se pudo conectar a Kafka para eliminación de usuarios")
+        print("❌ No se pudo conectar a Kafka para actualización de usuarios")
         return
 
-    topic = os.getenv("KAFKA_TOPIC_DELETE", "customer_deleted")
+    topic = os.getenv("KAFKA_TOPIC_UPDATE", "user_updated")
     print(f"📡 Suscribiéndose a tópico: {topic}")
     consumer.subscribe([topic])
 
     while True:
         msg = consumer.poll(1.0)
-        if msg is None: continue
+        if msg is None:
+            continue
         if msg.error():
             print(f"Kafka error: {msg.error()}")
             continue
 
         try:
             data = json.loads(msg.value().decode('utf-8'))
-            email = data.get("email")
-            db: Session = next(get_db())
+            print("🔔 Mensaje recibido:", data)
 
-            user = db.query(User).filter_by(email=email).first()
+            db: Session = next(get_db())
+            email_anterior = data.get("email_anterior")
+            update = data.get("update", {})
+
+            user = db.query(User).filter(User.email == email_anterior).first()
             if user:
-                db.delete(user)
+                user.username = update.get("username", user.username)
+                user.email = update.get("email", user.email)
+                user.full_name = update.get("full_name", user.full_name)
+                user.phone = update.get("phone", user.phone)
+                user.city = update.get("city", user.city)
+                user.address = update.get("address", user.address)
                 db.commit()
-                print(f"🗑️ Usuario eliminado: {email}")
+                print(f"✅ Usuario actualizado: {user.email}")
             else:
-                print(f"ℹ️ Usuario no encontrado: {email}")
+                print(f"⚠️ Usuario no encontrado: {email_anterior}")
+
         except Exception as e:
-            print(f"❌ Error al procesar evento de eliminación: {e}")
+            print(f"❌ Error al procesar evento de actualización: {e}")

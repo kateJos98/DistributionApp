@@ -18,13 +18,13 @@ jobs:
 
       - name: Build and push auth-service
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-service:latest ./Backend/login-service/auth-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/create-customer:latest ./Backend/customer-service/create-customer
+          docker push ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
 
       - name: Build and push authorization-service
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest ./Backend/login-service/authorization-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest ./Backend/customer-service/delete-customer
+          docker push ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
 
       
   deploy:
@@ -53,6 +53,6 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/create-customer :latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest 
 
-            docker run -d -p 8001:8001 --name create-customer  ${{ secrets.DOCKER_USERNAME }}/create-customer :latest
-            docker run -d -p 8002:8002 --name delete-customer  ${{ secrets.DOCKER_USERNAME }}/delete-customer :latest
+            docker run -d -p 8003:80 --name create-customer  ${{ secrets.DOCKER_USERNAME }}/create-customer :latest
+            docker run -d -p 8004:8004 --name delete-customer  ${{ secrets.DOCKER_USERNAME }}/delete-customer :latest
         #katyjoseth719

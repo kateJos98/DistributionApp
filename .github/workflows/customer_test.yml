@@ -18,12 +18,12 @@ jobs:
 
       - name: Build and push create-service
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/create-customer:latest ./Backend/customer-service/create-customer
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/create-customer:latest ./Backend/customer_service/Create_Customer
           docker push ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
 
       - name: Build and push delete-service
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest ./Backend/customer-service/delete-customer
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest ./Backend/customer_service/Delete_Customer
           docker push ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
 
       

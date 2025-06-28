@@ -16,15 +16,15 @@ jobs:
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build and push auth-service
+      - name: Build and push create-service
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-service:latest ./Backend/login-service/auth-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/create-service:latest ./Backend/customer-service/create-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/create-service:latest
 
-      - name: Build and push authorization-service
+      - name: Build and push delete-service
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest ./Backend/login-service/authorization-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/delete-service:latest ./Backend/customer-service/delete-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/delete-service:latest
 
       
   deploy:

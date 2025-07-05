@@ -47,15 +47,18 @@ jobs:
             sudo systemctl start docker
             sudo systemctl enable docker
 
-            docker stop auth-service authorization-service  || true
-            docker rm auth-service authorization-service  || true
-            
-            docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-            docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
-            
+            sudo usermod -aG docker $USER
+            newgrp docker
 
-            docker run -d -p 8001:8001 --name auth-service ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-            docker run -d -p 8002:8002 --name authorization-service ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+            sudo docker stop auth-service authorization-service || true
+            sudo docker rm auth-service authorization-service || true
+
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+
+            sudo docker run -d -p 8001:8001 --name auth-service ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+            sudo docker run -d -p 8002:8002 --name authorization-service ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+
         
 
             

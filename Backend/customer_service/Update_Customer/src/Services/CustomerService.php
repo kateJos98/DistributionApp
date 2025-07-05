@@ -14,15 +14,21 @@ class CustomerService {
     public function updateCustomer(string $emailAnterior, array $data): bool {
         $success = $this->repo->updateByEmail($emailAnterior, $data);
         if ($success) {
-            KafkaProducer::send('user_updated', json_encode([
-                'email_anterior' => $emailAnterior,
-                'email'          => $data['email'],       // nuevo email
-                'username'       => $data['username'],
-                'full_name'      => $data['full_name'],
-                'phone'          => $data['phone'],
-                'city'           => $data['city'],
-                'address'        => $data['address'],
-            ]));
+            $kafkaPayload = [
+                "email_anterior" => $emailAnterior,
+                "update" => [
+                    "email" => $data['email'],
+                    "username" => $data['username']
+                    
+                ]
+            ];
+            
+            try {
+                KafkaProducer::send('user_updated', json_encode($kafkaPayload));
+            } catch (\Exception $e) {
+                // Loggear el error pero no fallar la operación
+                error_log('Error enviando a Kafka: ' . $e->getMessage());
+            }
         }
         return $success;
     }

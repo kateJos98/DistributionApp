@@ -4,9 +4,15 @@ const cors = require("cors");
 const { getCustomer } = require("./controllers/customerController");
 
 const app = express();
-const PORT = process.env.PORT || 8020;
+const PORT = process.env.PORT || 8005;
 
-app.use(cors()); // <- Aquí habilitas CORS
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || "*",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: ["Content-Type", "Authorization", "api-key"],
+  exposedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
 
 app.get("/view-customer", getCustomer);

@@ -2,6 +2,10 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 use App\Controllers\CustomerController;
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");

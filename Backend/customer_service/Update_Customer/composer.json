@@ -6,6 +6,8 @@
   },
   "require": {
     "ext-pdo": "*",
-    "ext-rdkafka": "*"
+    "ext-rdkafka": "*",
+    "firebase/php-jwt": "^6.10",
+    "vlucas/phpdotenv": "^5.5"
   }
 }

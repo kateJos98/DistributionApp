@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package location;
+
+service LocationService {
+  rpc GetCustomerLocation(CustomerRequest) returns (LocationResponse);
+}
+
+message CustomerRequest {
+  string email = 1;
+}
+
+message LocationResponse {
+  double lat = 1;
+  double lng = 2;
+}

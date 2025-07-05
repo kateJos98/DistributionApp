@@ -12,6 +12,14 @@ class KafkaProducer {
         $topic = $producer->newTopic($topicName);
         $topic->produce(RD_KAFKA_PARTITION_UA, 0, $message);
 
-        $producer->flush(5000);
+        try {
+            $producer->flush(5000);
+            if (RD_KAFKA_RESP_ERR_NO_ERROR !== $producer->getOutQLen()) {
+                throw new \RuntimeException('Unable to flush messages');
+            }
+        } catch (\Exception $e) {
+            // Loggear el error o manejarlo adecuadamente
+            error_log('Kafka error: ' . $e->getMessage());
+}
     }
 }

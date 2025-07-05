@@ -7,9 +7,16 @@ from models.user import User
 from services.hash_service import hash_password
 from routers import protected_routes 
 import threading
-from kafka_consumer import consume_user_created, consume_user_deleted, consume_user_updated
+from kafka_consumer import (
+consume_user_created, 
+consume_user_deleted, 
+consume_user_updated, 
+consume_delivery_created, 
+consume_delivery_updated,
+consume_delivery_deleted
+)
 from dotenv import load_dotenv
-import os
+import os                                 
 
 load_dotenv()
 
@@ -34,19 +41,33 @@ app.add_middleware(
 app.include_router(login_router, prefix="/auth")
 app.include_router(protected_routes.router)
 
+def run_thread_safe(target):
+    t = threading.Thread(target=target)
+    t.start()
+    return t
+
 @app.on_event("startup")
 def startup_event():
     create_tables()
     db = next(get_db())
-    
+
     print("📥 Iniciando consumidor Kafka para customer_created")
-    threading.Thread(target=consume_user_created, daemon=True).start()
+    run_thread_safe(consume_user_created)
 
     print("📥 Iniciando consumidor Kafka para customer_deleted")
-    threading.Thread(target=consume_user_deleted, daemon=True).start()
-    
+    run_thread_safe(consume_user_deleted)
+
     print("📥 Iniciando consumidor Kafka para customer_update")
-    threading.Thread(target=consume_user_updated, daemon=True).start()
+    run_thread_safe(consume_user_updated)
+    
+    print("📥 Iniciando consumidor Kafka para delivery_created")
+    run_thread_safe(consume_delivery_created)
+    
+    print("📥 Iniciando consumidor Kafka para delivery_update")
+    run_thread_safe(consume_delivery_updated)
+    
+    print("📥 Iniciando consumidor Kafka para delivery_delete")
+    run_thread_safe(consume_delivery_deleted)
 
     # Obtener datos desde .env
     admin_username = os.getenv("ADMIN_USERNAME", "admin")

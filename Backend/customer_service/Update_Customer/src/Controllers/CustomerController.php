@@ -5,33 +5,49 @@ use App\Config\Database;
 use App\Models\CustomerRepository;
 use App\Services\CustomerService;
 use App\Kafka\KafkaProducer;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
 
 class CustomerController {
     public static function handleUpdate(): void {
-        $input = json_decode(file_get_contents("php://input"), true);
-
-        // Validar campos mínimos
-        if (!isset($input['username']) || !isset($input['full_name']) || 
-            !isset($input['phone']) || !isset($input['city']) || 
-            !isset($input['address']) || !isset($input['email'])) {
-            http_response_code(400);
-            echo json_encode(["error" => "Faltan campos requeridos"]);
+        $headers = getallheaders();
+        if (!isset($headers['Authorization'])) {
+            http_response_code(401);
+            echo json_encode(["error" => "No se envió el token"]);
             return;
         }
+        $token = str_replace("Bearer ", "", $headers['Authorization']);
 
         try {
+            // Validar token con el authorization-service
+            $authResponse = self::validateTokenWithAuthService($token);
+            $userEmail = $authResponse['email']; // Email obtenido del token
+            
+            $input = json_decode(file_get_contents("php://input"), true);
+            
+            // Validación de campos mínimos
+            if (!isset($input['username']) || !isset($input['email']) || 
+                !isset($input['full_name']) || !isset($input['phone']) || 
+                !isset($input['city']) || !isset($input['address'])) {
+                http_response_code(400);
+                echo json_encode(["error" => "Faltan campos requeridos"]);
+                return;
+            }
+
             $pdo = Database::connect();
             $repo = new CustomerRepository($pdo);
             $service = new CustomerService($repo);
 
-            // Obtener cliente actual por username
-            $existingCustomer = $repo->findByUsername($input['username']);
+            // Buscar cliente por email del token
+            $existingCustomer = $repo->findByEmail($userEmail);
             if (!$existingCustomer) {
                 http_response_code(404);
                 echo json_encode(["error" => "Cliente no encontrado"]);
                 return;
             }
 
+            // Guardar email anterior para actualización
             $emailAnterior = $existingCustomer['email'];
 
             // Actualizar en MySQL
@@ -42,15 +58,13 @@ class CustomerController {
                 return;
             }
 
-            
+            // Enviar evento Kafka para actualizar login-service
             $payload = [
                 "email_anterior" => $emailAnterior,
-                "email"          => $input['email'],
-                "username"       => $input['username'],
-                "full_name"      => $input['full_name'],
-                "phone"          => $input['phone'],
-                "city"           => $input['city'],
-                "address"        => $input['address'],
+                "update" => [
+                    "email" => $input['email'],
+                    "username" => $input['username']
+                ]
             ];
 
             KafkaProducer::send("user_updated", json_encode($payload));
@@ -64,5 +78,23 @@ class CustomerController {
                 "detalle" => $e->getMessage()
             ]);
         }
+    }
+
+    private static function validateTokenWithAuthService(string $token): array {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "http://authorization-service:8002/validate-role");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer " . $token
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        
+        if ($httpCode !== 200) {
+            throw new \Exception("Token inválido o no autorizado");
+        }
+        
+        return json_decode($response, true);
     }
 }

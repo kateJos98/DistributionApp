@@ -26,10 +26,10 @@ class CustomerRepository {
             $email
         ]);
     }
-    
-    public function findByUsername(string $username): ?array {
-        $stmt = $this->db->prepare("SELECT * FROM customers WHERE username = ?");
-        $stmt->execute([$username]);
+
+    public function findByEmail(string $email): ?array {
+        $stmt = $this->db->prepare("SELECT * FROM customers WHERE email = ?");
+        $stmt->execute([$email]);
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
     }
 

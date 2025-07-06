@@ -1,4 +1,7 @@
-variable "region" {}
+variable "region" {
+  description = "AWS region for the deployment"
+  type        = string
+}
 variable "ami" {}
 variable "instance_type" {}
 variable "key_name" {}

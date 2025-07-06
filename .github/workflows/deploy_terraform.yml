@@ -22,32 +22,39 @@ jobs:
       - name: 🔧 Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.6.6  # Puedes actualizar a la versión que uses
+          terraform_version: 1.8.0  
 
-      - name: 📦 Inicializar Terraform
-        run: terraform init
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: us-east-1
 
-      - name: 🔍 Validar configuración
-        run: terraform validate
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      - name: Docker Login
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
-      - name: 🧠 Planificar despliegue
-        run: terraform plan -var-file="terraform.tfvars"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      - name: Build and push Auth Login
+        run: |
+            docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-login ./Backend/login-service/auth-service
+            docker push ${{ secrets.DOCKER_USERNAME }}/auth-login
 
-      - name: 🚀 Aplicar cambios (Deploy)
-        run: terraform apply -auto-approve -var-file="terraform.tfvars"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      - name: Build and push Authorization Login
+        run: |
+            docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-login ./Backend/login-service/authorization-service
+            docker push ${{ secrets.DOCKER_USERNAME }}/authorization-login
+
+      - name: Terraform Init
+        run: terraform -chdir=$TF_WORKING_DIR init
+
+      - name: Terraform Format Check
+        run: terraform -chdir=$TF_WORKING_DIR fmt -check
+
+      - name: Terraform Validate
+        run: terraform -chdir=$TF_WORKING_DIR validate
+
+      - name: Terraform Plan
+        run: terraform -chdir=$TF_WORKING_DIR plan -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform -chdir=$TF_WORKING_DIR apply -auto-approve tfplan

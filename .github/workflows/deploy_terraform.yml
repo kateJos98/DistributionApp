@@ -27,34 +27,34 @@ jobs:
       - name: Set up AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
       - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
       - name: Build and push Auth Login
         run: |
-            docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-login ./Backend/login-service/auth-service
-            docker push ${{ secrets.DOCKER_USERNAME }}/auth-login
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-login ./Backend/login-service/auth-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/auth-login
 
       - name: Build and push Authorization Login
         run: |
-            docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-login ./Backend/login-service/authorization-service
-            docker push ${{ secrets.DOCKER_USERNAME }}/authorization-login
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-login ./Backend/login-service/authorization-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/authorization-login
 
       - name: Terraform Init
-        run: terraform -chdir=$TF_WORKING_DIR init
+        run: terraform init
 
       - name: Terraform Format Check
-        run: terraform -chdir=$TF_WORKING_DIR fmt -check
+        run: terraform fmt -check
 
       - name: Terraform Validate
-        run: terraform -chdir=$TF_WORKING_DIR validate
+        run: terraform validate
 
       - name: Terraform Plan
-        run: terraform -chdir=$TF_WORKING_DIR plan -out=tfplan
+        run: terraform plan -out=tfplan
 
       - name: Terraform Apply
-        run: terraform -chdir=$TF_WORKING_DIR apply -auto-approve tfplan
+        run: terraform apply -auto-approve tfplan

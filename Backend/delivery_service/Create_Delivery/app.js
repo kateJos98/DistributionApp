@@ -9,9 +9,13 @@ const app = express();
 app.use(express.json());
 app.use("/Create-Delivery", deliveryRoutes);
 
-connectProducer().catch(console.error);
+module.exports = app;
 
-const PORT = process.env.PORT || 8007;
-app.listen(PORT, () => {
-  console.log(`🚚 Create-Delivery service on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== "test") {
+  connectProducer().catch(console.error);
+
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚚 Create-Delivery service on port ${PORT}`);
+  });
+}

@@ -37,13 +37,13 @@ jobs:
 
       - name: Build and push Auth Login
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-login ./Backend/login-service/auth-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/auth-login
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-service $GITHUB_WORKSPACE/Backend/login-service/auth-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/auth-service
 
       - name: Build and push Authorization Login
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-login ./Backend/login-service/authorization-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/authorization-login
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-service $GITHUB_WORKSPACE/Backend/login-service/authorization-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/authorization-service
 
       - name: Terraform Init
         run: terraform init

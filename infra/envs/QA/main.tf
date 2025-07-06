@@ -56,7 +56,10 @@ module "qa_nginx_gateway" {
   subnet_id              = var.subnet_id_1
   security_group_id      = module.qa_sg_nginx.id
   name                   = "qa-nginx-gateway"
-  auth_login_ip          = module.qa_auth_login.public_ip
-  authorization_login_ip = module.qa_authorization_login.public_ip
+  microservices = {
+    "auth-login"          = "${module.qa_auth_login.public_ip}:8001"
+    "authorization-login" = "${module.qa_authorization_login.public_ip}:8002"
+
+  }
 }
 

@@ -34,6 +34,7 @@ module "qa_authorization_login" {
   security_group_id = module.qa_sg_nginx.id
   name              = "qa-authorization-login"
   user_data         = file("../../scripts/userdata-authorization_login.sh")
+  private_key_path  = var.private_key_path
 }
 
 # ============================

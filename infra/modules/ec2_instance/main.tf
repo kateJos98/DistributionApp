@@ -13,13 +13,4 @@ resource "aws_instance" "service" {
 
   user_data = var.user_data
 
-  provisioner "remote-exec" {
-
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      private_key = file(var.private_key_path)
-      host        = self.public_ip
-    }
-  }
 }

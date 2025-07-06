@@ -14,3 +14,4 @@ infra/envs/QA/*.pem
 */*.exe
 
 infra/envs/QA/.terraform/
+*/*.exe

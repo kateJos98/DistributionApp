@@ -13,7 +13,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: terraform/envs/QA
+        working-directory: infra/envs/QA
 
     steps:
       - name: 📥 Clonar repositorio

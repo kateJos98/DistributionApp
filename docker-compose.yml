@@ -1,0 +1,304 @@
+
+services:
+  api-gateway:
+    build: ./backend/api_gateway
+    container_name: api-gateway
+    ports:
+      - "80:80"  # Accessed from localhost:80
+    depends_on:
+      - auth-service
+      - authorization-service
+      - create-customer
+      - delete-customer
+      - update-customer
+      - view-customer
+      - customer-location
+      - create-delivery
+      - update-delivery
+      - delete-delivery
+      - assign-delivery
+    networks:
+      - app-network
+
+  auth-service:
+    build: ./Backend/login-service/auth-service
+    container_name: auth-service
+    restart: always
+    ports:
+      - "8001:8000"
+    env_file:
+      - ./Backend/login-service/auth-service/.env
+    depends_on:
+      - postgres-db
+      - kafka
+    networks:
+      - app-network
+  
+  authorization-service:
+    build: ./Backend/login-service/authorization-service
+    container_name: authorization-service
+    env_file:
+      - ./Backend/login-service/authorization-service/.env
+    ports:
+      - "8002:8002"
+    networks:
+      - app-network
+
+  create-customer:
+    build: ./Backend/customer_service/Create_Customer
+    container_name: create-customer
+    ports:
+      - "8003:80"
+    depends_on:
+      - mysql-customer
+      - kafka
+    environment:
+      DB_HOST: mysql-customer
+      DB_NAME: customer_db
+      DB_USER: root
+      DB_PASS: secret
+      KAFKA_BROKER: kafka:9092
+    networks:
+      - app-network
+  
+  delete-customer:
+    build: ./Backend/customer_service/Delete_Customer
+    container_name: delete-customer
+    ports:
+      - "8004:8004"
+    depends_on:
+      - mysql-customer
+      - kafka
+    networks:
+      - app-network
+
+  update-customer:
+    build: ./Backend/customer_service/Update_Customer
+    container_name: update-customer
+    restart: always
+    ports:
+      - "8010:80"  
+    env_file:
+      - ./Backend/customer_service/Update_Customer/.env
+    depends_on:
+      - mysql-customer
+      - kafka
+    networks:
+      - app-network
+
+  view-customer:
+    container_name: view-customer
+    build:
+      context: ./Backend/customer_service/View_Customer
+    ports:
+      - "8005:8005"
+    environment:
+      - PORT=8005
+      - DB_HOST=mysql-customer
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - DB_NAME=customer_db
+      - AUTH_SERVICE_URL=http://authorization-service:8002/validate-role
+    depends_on:
+      - mysql-customer
+      - authorization-service
+    networks:
+      - app-network
+
+  customer-location:
+    build: ./Backend/customer_service/Set_customer_location
+    container_name: set-customer-location
+    ports:
+      - "8006:8006"
+    environment:
+      - DB_HOST=mysql-customer
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - DB_NAME=customer_db
+      - AUTH_SERVICE_URL=http://authorization-service:8002/validate-role
+    depends_on:
+      - mysql-customer
+      - authorization-service
+    networks:
+      - app-network
+  
+  create-delivery:
+    build:
+      context: ./Backend/delivery_service/Create_Delivery
+    container_name: create-delivery
+    restart: always
+    ports:
+      - "8007:8007"
+    depends_on:
+      - kafka
+      - postgres-delivery
+    env_file:
+      - ./Backend/delivery_service/Create_Delivery/.env
+    networks:
+      - app-network
+
+  update-delivery:
+    build: ./Backend/delivery_service/Update_Delivery
+    container_name: update-delivery
+    restart: always
+    ports:
+      - "8008:8008"
+    env_file:
+      - ./Backend/delivery_service/Update_Delivery/.env
+    depends_on:
+      - postgres-delivery
+      - kafka
+    networks:
+      - app-network
+
+  delete-delivery:
+    build: ./Backend/delivery_service/Delete_Delivery
+    container_name: delete-delivery
+    restart: always
+    ports:
+      - "8009:8009"
+    env_file:
+      - ./Backend/delivery_service/Delete_Delivery/.env
+    depends_on:
+      - postgres-delivery
+      - kafka
+    networks:
+      - app-network
+  
+  find-delivery:
+    build: ./Backend/delivery_service/Find_Delivery
+    container_name: find-delivery
+    restart: unless-stopped
+    env_file:
+      - ./Backend/delivery_service/Find_Delivery/.env
+    depends_on:
+      - redis
+      - postgres-delivery
+    ports:
+      - "8011:8011"
+    networks:
+      - app-network
+
+
+  assign-delivery:
+    build: ./Backend/delivery_service/Assign_Delivery
+    container_name: assign-delivery
+    ports:
+      - "8012:8012"
+      - "50051:50051"
+    depends_on:
+      - redis
+    env_file:
+      - ./Backend/delivery_service/Assign_Delivery/.env
+    networks:
+      - app-network
+  postgres-db:
+    image: postgres:14
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_DB: login_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Mypassword
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7.2
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+  postgres-delivery:
+    image: postgres:15
+    container_name: postgres-delivery
+    restart: always
+    environment:
+      POSTGRES_DB: delivery_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecret
+    volumes:
+      - delivery_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - app-network  
+
+
+  mysql-customer:
+    image: mysql:8.0
+    container_name: mysql-customer
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: customer_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - app-network
+  
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - app-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"  
+      KAFKA_DELETE_TOPIC_ENABLE: "false"
+    networks:
+      - app-network
+
+ 
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - auth-service
+      - authorization-service
+      - create-customer
+    networks:
+      - app-network
+
+
+volumes:
+  pgdata:
+  mysql_data:
+  delivery_pgdata:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge

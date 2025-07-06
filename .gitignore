@@ -1,0 +1,16 @@
+node_modules/
+.env
+.DS_Store
+*.log
+**/.env
+
+.terraform/
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate*
+infra/envs/QA/*.pem
+
+*.exe
+*/*.exe
+
+infra/envs/QA/.terraform/

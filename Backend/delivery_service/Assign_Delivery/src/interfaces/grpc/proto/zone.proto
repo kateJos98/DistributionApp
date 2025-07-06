@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+service ZoneService {
+  rpc Assign (AssignRequest) returns (AssignResponse);
+}
+
+message AssignRequest {
+  string driverId = 1;
+  string zoneId = 2;
+}
+
+message AssignResponse {
+  string message = 1;
+}

@@ -1,28 +1,27 @@
-import psycopg2
-from psycopg2 import pool
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 
-# Cargar variables del archivo .env
 load_dotenv()
 
-dbconfig = {
-    "host": os.getenv("DB_HOST"),
-    "port": os.getenv("DB_PORT"),
-    "user": os.getenv("DB_USER"),
-    "password": os.getenv("DB_PASSWORD"),
-    "dbname": os.getenv("DB_NAME")
-}
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Crear el pool de conexiones
-connection_pool = psycopg2.pool.SimpleConnectionPool(
-    minconn=1,
-    maxconn=5,
-    **dbconfig
-)
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-def get_connection():
-    return connection_pool.getconn()
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+        
 
-def release_connection(conn):
-    connection_pool.putconn(conn)
+def create_tables():
+    from models.user import Base
+    print("⏳ Creando tablas...")
+    Base.metadata.create_all(bind=engine)
+    print("✅ Tablas creadas correctamente.")

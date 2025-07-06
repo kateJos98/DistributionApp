@@ -1,15 +1,15 @@
-from fastapi import APIRouter, Header, HTTPException
-from services.role_service import verify_role
+from fastapi import APIRouter, Header, HTTPException, status
+from services.role_service import verify_token
 
 router = APIRouter()
 
 @router.get("/validate-role")
-def validate_role(required_role: str, authorization: str = Header(...)):
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=400, detail="Token inválido")
-    
-    token = authorization.split(" ")[1]
-    if verify_role(token, required_role):
-        return {"message": "Acceso permitido"}
-    else:
-        raise HTTPException(status_code=403, detail="Rol no autorizado")
+def validate_user_role(authorization: str = Header(...)):
+    print(f"Token recibido en header Authorization: {authorization}")
+    token = authorization.replace("Bearer ", "")
+    user_data = verify_token(token)
+    print("✅ Token verificado:", user_data)
+    if not user_data:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+
+    return {"email": user_data["email"], "role": user_data["role"]}

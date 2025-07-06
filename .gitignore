@@ -3,5 +3,12 @@ node_modules/
 .DS_Store
 *.log
 **/.env
-infra/QA/*.pem
 
+.terraform/
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate*
+infra/envs/QA/*.pem
+
+*.exe
+*/*.exe

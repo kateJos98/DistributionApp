@@ -14,3 +14,7 @@ resource "aws_instance" "service" {
   user_data = var.user_data
 
 }
+
+provider "aws" {
+  region = var.region
+}

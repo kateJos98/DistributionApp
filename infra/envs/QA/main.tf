@@ -51,3 +51,6 @@ module "qa_nginx_gateway" {
   auth_login_ip         = module.qa_auth_login.public_ip
   authorization_login_ip = module.qa_authorization_login.public_ip
 }
+provider "aws" {
+  region = var.region
+}

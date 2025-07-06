@@ -6,3 +6,4 @@ vpc_id         = "vpc-0c9e7f092700de306"
 subnet_id_1    = "subnet-02ef146a772a086a6"
 subnet_id_2    = "subnet-0133b9f750df8c15a"
 private_key_path   = "~/.ssh/distribution-key.pem"
+

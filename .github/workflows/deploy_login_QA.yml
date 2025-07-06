@@ -1,14 +1,15 @@
-name: Deploy Microservices to EC2
+name: Build and Push Login Microservices
 
 on:
   push:
     branches:
-      - test
+      - test2
+  workflow_dispatch:
 
 jobs:
   build_and_push_images:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -26,14 +27,12 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest ./Backend/login-service/authorization-service
           docker push ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
 
-      
   deploy:
     name: Deploy Docker Containers to EC2
     runs-on: ubuntu-latest
     needs: build_and_push_images
-    
+
     steps:
-    
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -42,14 +41,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            sudo apt update -y
-            sudo apt install docker.io -y
-            sudo systemctl start docker
-            sudo systemctl enable docker
-
-            sudo usermod -aG docker $USER
-            newgrp docker
-
             sudo docker stop auth-service authorization-service || true
             sudo docker rm auth-service authorization-service || true
 
@@ -58,7 +49,3 @@ jobs:
 
             sudo docker run -d -p 8001:8001 --name auth-service ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
             sudo docker run -d -p 8002:8002 --name authorization-service ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
-
-        
-
-            

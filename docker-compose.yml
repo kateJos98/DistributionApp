@@ -1,6 +1,24 @@
 
 services:
-
+  api-gateway:
+    build: ./backend/api_gateway
+    container_name: api-gateway
+    ports:
+      - "80:80"  # Accessed from localhost:80
+    depends_on:
+      - auth-service
+      - authorization-service
+      - create-customer
+      - delete-customer
+      - update-customer
+      - view-customer
+      - customer-location
+      - create-delivery
+      - update-delivery
+      - delete-delivery
+      - assign-delivery
+    networks:
+      - app-network
 
   auth-service:
     build: ./Backend/login-service/auth-service

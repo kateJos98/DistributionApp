@@ -1,1 +1,0 @@
-key_name = "mi-clave-ec2"

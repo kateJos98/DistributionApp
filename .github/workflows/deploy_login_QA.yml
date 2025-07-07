@@ -65,10 +65,6 @@ jobs:
               -v pgdata:/var/lib/postgresql/data \
               postgres:14
 
-            # Esperar a que PostgreSQL esté disponible
-            echo "Esperando a que PostgreSQL esté listo..."
-            sleep 20
-
             # Descargar imágenes desde Docker Hub
             docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest

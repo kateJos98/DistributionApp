@@ -46,14 +46,15 @@ jobs:
             sudo apt install -y docker.io
             sudo systemctl start docker
             sudo systemctl enable docker
-            sudo usermod -aG docker ubuntu
 
+            # Crear grupo docker y añadir usuario ubuntu (solo si no está hecho)
             sudo groupadd docker || true
             sudo usermod -aG docker ubuntu || true
 
+            # Crear volumen Docker para PostgreSQL
             sudo docker volume create pgdata || true
 
-            # Crear red si no existe
+            # Crear red Docker si no existe
             sudo docker network create app-network || true
 
             # Detener y eliminar contenedores antiguos
@@ -73,11 +74,10 @@ jobs:
 
             # Descargar imágenes desde Docker Hub
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-            docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
 
             # Ejecutar auth-service
             sudo docker run -d --name auth-service --network app-network -p 8001:8000 --env-file /home/ubuntu/.env-auth ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-
 
             # Ejecutar authorization-service
             sudo docker run -d --name authorization-service --network app-network -p 8002:8002 --env-file /home/ubuntu/.env-authorization ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest

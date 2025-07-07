@@ -3,7 +3,7 @@ name: Deploy Infraestructura con Terraform (QA)
 on:
   push:
     branches:
-      - test
+      - test2
   workflow_dispatch:
 
 jobs:

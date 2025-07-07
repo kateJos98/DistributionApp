@@ -3,6 +3,8 @@ resource "aws_security_group" "nginx_sg" {
   description = "Allow HTTP traffic for Nginx API Gateway"
   vpc_id      = var.vpc_id
 
+ 
+
   ingress {
     from_port   = 22
     to_port     = 22

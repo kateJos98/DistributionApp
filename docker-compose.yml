@@ -17,6 +17,7 @@ services:
       - update-delivery
       - delete-delivery
       - assign-delivery
+      - find-delivery
     networks:
       - app-network
 
@@ -192,6 +193,19 @@ services:
       - ./Backend/delivery_service/Assign_Delivery/.env
     networks:
       - app-network
+
+  view-delivery:
+    build: ./Backend/delivery_service/View_Delivery
+    container_name: view-delivery
+    ports:
+      - "8013:8013"
+    env_file:
+      - ./Backend/delivery_service/View_Delivery/.env
+    depends_on:
+      - postgres-delivery
+    networks:
+      - app-network
+
   postgres-db:
     image: postgres:14
     container_name: postgres-db

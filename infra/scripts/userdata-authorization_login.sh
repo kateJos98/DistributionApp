@@ -7,5 +7,5 @@ sudo systemctl enable docker
 # Login opcional si tu Docker Hub es privado
 # docker login -u <usuario> -p <contraseña>
 
-docker pull katyjoseth719/authorization-login:latest
-docker run -d -p 8002:8002 --name authorization-login katyjoseth719/authorization-login:latest
+docker pull katyjoseth719/authorization-service:latest
+docker run -d -p 8002:8002 --name authorization-service katyjoseth719/authorization-login:latest

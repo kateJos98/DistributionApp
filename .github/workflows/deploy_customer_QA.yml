@@ -3,7 +3,7 @@ name: Deploy Microservices to EC2
 on:
   push:
     branches:
-      - test2
+      - test
 
 jobs:
   build_and_push_images:
@@ -37,7 +37,7 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.EC2_HOST_LOGIN_TEST }}
+          host: ${{ secrets.EC2_HOST_CUSTOMER_TEST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
@@ -47,11 +47,11 @@ jobs:
             sudo systemctl start docker
             sudo systemctl enable docker
 
-            sudo docker stop auth-service authorization-service || true
-            sudo docker rm auth-service authorization-service || true
+            sudo docker stop create-customer delete-customer || true
+            sudo docker rm create-customer delete-customer || true
 
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
 
-            sudo docker run -d -p 8001:8001 --name auth-service ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-            sudo docker run -d -p 8002:8002 --name authorization-service ${{secrets.DOCKER_USERNAME }}/authorization-service:latest
+            sudo docker run -d -p 8001:8001 --name create-customer ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
+            sudo docker run -d -p 8002:8002 --name delete-customer ${{secrets.DOCKER_USERNAME }}/delete-customer:latest

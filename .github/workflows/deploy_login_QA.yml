@@ -1,9 +1,9 @@
-name: Build and Push Login Microservices
+name: Deploy Login Microservices to EC2
 
 on:
   push:
     branches:
-      - test2
+      - test
   workflow_dispatch:
 
 jobs:
@@ -28,12 +28,12 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
 
   deploy:
-    name: Deploy Docker Containers to EC2
+    name: Deploy Auth + Authorization on EC2
     runs-on: ubuntu-latest
     needs: build_and_push_images
 
     steps:
-      - name: Deploy to EC2
+      - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST_LOGIN_TEST }}
@@ -41,11 +41,50 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            sudo docker stop auth-service authorization-service || true
-            sudo docker rm auth-service authorization-service || true
+            # Instalar Docker si es necesario
+            sudo apt update -y
+            sudo apt install -y docker.io
+            sudo systemctl start docker
+            sudo systemctl enable docker
 
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+            # Crear red si no existe
+            docker network create app-network || true
 
-            sudo docker run -d -p 8001:8001 --name auth-service ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-            sudo docker run -d -p 8002:8002 --name authorization-service ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+            # Detener y eliminar contenedores antiguos
+            docker stop auth-service authorization-service postgres-db || true
+            docker rm auth-service authorization-service postgres-db || true
+
+            # Levantar base de datos PostgreSQL
+            docker run -d \
+              --name postgres-db \
+              --network app-network \
+              -e POSTGRES_DB=login_db \
+              -e POSTGRES_USER=postgres \
+              -e POSTGRES_PASSWORD=Mypassword \
+              -p 5432:5432 \
+              -v pgdata:/var/lib/postgresql/data \
+              postgres:14
+
+            # Esperar a que PostgreSQL esté disponible
+            echo "Esperando a que PostgreSQL esté listo..."
+            sleep 20
+
+            # Descargar imágenes desde Docker Hub
+            docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+
+            # Ejecutar auth-service
+            docker run -d \
+              --name auth-service \
+              --network app-network \
+              -p 8001:8000 \
+              --env-file /home/ubuntu/.env-auth \
+              ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+
+            # Ejecutar authorization-service
+            docker run -d \
+              --name authorization-service \
+              --network app-network \
+              -p 8002:8002 \
+              --env-file /home/ubuntu/.env-authorization \
+              ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest

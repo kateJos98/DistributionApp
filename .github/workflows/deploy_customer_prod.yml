@@ -1,0 +1,93 @@
+name: Deploy Customer Microservices to EC2
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build_and_push_images:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and push Create_Customer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/create-customer:latest ./Backend/customer_service/Create_Customer
+          docker push ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
+
+      - name: Build and push Delete_Customer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest ./Backend/customer_service/Delete_Customer
+          docker push ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
+
+      - name: Build and push Update_Customer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/update-customer:latest ./Backend/customer_service/Update_Customer
+          docker push ${{ secrets.DOCKER_USERNAME }}/update-customer:latest
+
+      - name: Build and push View_Customer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/view-customer:latest ./Backend/customer_service/View_Customer
+          docker push ${{ secrets.DOCKER_USERNAME }}/view-customer:latest
+
+      - name: Build and push Set_Customer_Location
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/set-customer-location:latest ./Backend/customer_service/Set_customer_location
+          docker push ${{ secrets.DOCKER_USERNAME }}/set-customer-location:latest
+
+  deploy_to_ec2:
+    name: Deploy Containers on EC2
+    runs-on: ubuntu-latest
+    needs: build_and_push_images
+
+    steps:
+      - name: SSH into EC2 and deploy containers
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST_CUSTOMER_TEST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            sudo apt update -y
+            sudo apt install -y docker.io
+            sudo systemctl start docker
+            sudo systemctl enable docker
+
+            docker network create app-network || true
+
+            docker stop create-customer delete-customer update-customer view-customer set-customer-location || true
+            docker rm create-customer delete-customer update-customer view-customer set-customer-location || true
+
+            docker pull ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/update-customer:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/view-customer:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/set-customer-location:latest
+
+            docker run -d --name create-customer --network app-network -p 8003:8003 \
+              -e PORT=8003 -e DB_HOST=mysql-customer -e DB_NAME=customer_db -e DB_USER=root -e DB_PASS=secret -e KAFKA_BROKER=kafka:9092 \
+              ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
+
+            docker run -d --name delete-customer --network app-network -p 8004:8004 \
+              -e PORT=8004 -e DB_HOST=mysql-customer -e DB_NAME=customer_db -e DB_USER=root -e DB_PASS=secret -e KAFKA_BROKER=kafka:9092 \
+              ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
+
+            docker run -d --name update-customer --network app-network -p 8010:8010 \
+              -e PORT=8010 -e DB_HOST=mysql-customer -e DB_NAME=customer_db -e DB_USER=root -e DB_PASS=secret -e KAFKA_BROKER=kafka:9092 \
+              ${{ secrets.DOCKER_USERNAME }}/update-customer:latest
+
+            docker run -d --name view-customer --network app-network -p 8005:8005 \
+              -e PORT=8005 -e DB_HOST=mysql-customer -e DB_NAME=customer_db -e DB_USER=root -e DB_PASSWORD=secret \
+              -e AUTH_SERVICE_URL=http://authorization-service:8002/validate-role \
+              ${{ secrets.DOCKER_USERNAME }}/view-customer:latest
+
+            docker run -d --name set-customer-location --network app-network -p 8006:8006 \
+              -e DB_HOST=mysql-customer -e DB_NAME=customer_db -e DB_USER=root -e DB_PASSWORD=secret \
+              -e AUTH_SERVICE_URL=http://authorization-service:8002/validate-role \
+              ${{ secrets.DOCKER_USERNAME }}/set-customer-location:latest

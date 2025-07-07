@@ -28,11 +28,7 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest ./Backend/customer_service/Delete_Customer
           docker push ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
 
-      # Build y push Create Delivery
-      - name: Build and push create-delivery image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/create-delivery:latest ./Backend/delivery_service/Create_Delivery
-          docker push ${{ secrets.DOCKER_USERNAME }}/create-delivery:latest
+      
 
   deploy_to_ec2:
     runs-on: ubuntu-latest
@@ -62,7 +58,6 @@ jobs:
             # Pull imágenes
             docker pull ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
-            docker pull ${{ secrets.DOCKER_USERNAME }}/create-delivery:latest
 
             # Ejecutar contenedores con sus variables de entorno y puertos
             docker run -d --name create-customer --network microservices_net -p 8001:8001 \
@@ -73,6 +68,4 @@ jobs:
               -e PG_HOST=postgres-customer -e PG_PORT=5432 -e PG_DATABASE=customer_db -e PG_USER=postgres -e PG_PASSWORD=mysecret \
               ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
 
-            docker run -d --name create-delivery --network microservices_net -p 8007:8007 \
-              -e PG_HOST=postgres-delivery -e PG_PORT=5432 -e PG_DATABASE=delivery_db -e PG_USER=postgres -e PG_PASSWORD=mysecret \
-              ${{ secrets.DOCKER_USERNAME }}/create-delivery:latest
+            

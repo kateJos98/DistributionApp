@@ -46,6 +46,9 @@ jobs:
             sudo apt install -y docker.io
             sudo systemctl start docker
             sudo systemctl enable docker
+            sudo usermod -aG docker ubuntu
+            newgrp docker
+
 
             # Crear red si no existe
             docker network create app-network || true

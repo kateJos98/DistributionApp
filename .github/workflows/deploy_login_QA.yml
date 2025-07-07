@@ -47,18 +47,21 @@ jobs:
             sudo systemctl start docker
             sudo systemctl enable docker
             sudo usermod -aG docker ubuntu
-            newgrp docker
 
+            sudo groupadd docker || true
+            sudo usermod -aG docker ubuntu || true
+
+            sudo docker volume create pgdata || true
 
             # Crear red si no existe
-            docker network create app-network || true
+            sudo docker network create app-network || true
 
             # Detener y eliminar contenedores antiguos
-            docker stop auth-service authorization-service postgres-db || true
-            docker rm auth-service authorization-service postgres-db || true
+            sudo docker stop auth-service authorization-service postgres-db || true
+            sudo docker rm auth-service authorization-service postgres-db || true
 
             # Levantar base de datos PostgreSQL
-            docker run -d \
+            sudo docker run -d \
               --name postgres-db \
               --network app-network \
               -e POSTGRES_DB=login_db \
@@ -69,12 +72,12 @@ jobs:
               postgres:14
 
             # Descargar imágenes desde Docker Hub
-            docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
 
             # Ejecutar auth-service
-            docker run -d --name auth-service --network app-network -p 8001:8000 --env-file /home/ubuntu/.env-auth ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+            sudo docker run -d --name auth-service --network app-network -p 8001:8000 --env-file /home/ubuntu/.env-auth ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
 
 
             # Ejecutar authorization-service
-            docker run -d --name authorization-service --network app-network -p 8002:8002 --env-file /home/ubuntu/.env-authorization ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+            sudo docker run -d --name authorization-service --network app-network -p 8002:8002 --env-file /home/ubuntu/.env-authorization ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest

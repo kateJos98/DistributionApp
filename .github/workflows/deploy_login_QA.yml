@@ -74,17 +74,8 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
 
             # Ejecutar auth-service
-            docker run -d \
-              --name auth-service \
-              --network app-network \
-              -p 8001:8000 \
-              --env-file /home/ubuntu/.env-auth \
-              ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+            docker run -d --name auth-service --network app-network -p 8001:8000 --env-file /home/ubuntu/.env-auth ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+
 
             # Ejecutar authorization-service
-            docker run -d \
-              --name authorization-service \
-              --network app-network \
-              -p 8002:8002 \
-              --env-file /home/ubuntu/.env-authorization \
-              ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+            docker run -d --name authorization-service --network app-network -p 8002:8002 --env-file /home/ubuntu/.env-authorization ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest

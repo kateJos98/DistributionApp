@@ -68,7 +68,7 @@ jobs:
 
             # Crear archivo .env (usado por ambos contenedores)
             cat <<EOF > .env
-            DB_HOST=${{ secrets.MYSQL }}
+            DB_HOST=mysql-db
             DB_PORT=3307
             DB_NAME=customer_db
             DB_USER=root

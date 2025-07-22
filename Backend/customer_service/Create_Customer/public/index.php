@@ -19,7 +19,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($uri === '/create-customer' && $method === 'POST') {
     CustomerController::handleRegister();
-}} elseif ($uri === '/health' && $method === 'GET') {
+} elseif ($uri === '/health' && $method === 'GET') {
     echo json_encode(["status" => "ok"]);
 } else {
     http_response_code(404);

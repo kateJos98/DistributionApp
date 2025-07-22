@@ -3,7 +3,7 @@ name: Deploy Customer Microservices to EC2
 on:
   push:
     branches:
-      - test2  
+      - test
 
 jobs:
   build_and_push_images:

@@ -16,11 +16,13 @@ def conectar_kafka(group_id):
                 'group.id': group_id,
                 'auto.offset.reset': 'earliest'
             })
+            print("✅ Conectado a Kafka")
             return consumer
         except Exception as e:
             print(f"❌ Intento {i+1}/10: Kafka no disponible - {e}")
             time.sleep(5)
     return None
+
 
 # ✅ CONSUMIDOR: Crear Usuario
 def consume_user_created():
@@ -92,9 +94,19 @@ def consume_user_updated():
             email_anterior = data.get("email_anterior")
             update = data.get("update", {})
 
-            db: Session = next(get_db())
-            user = db.query(User).filter(User.email == email_anterior).first()
-
+            # Intentar obtener la sesión DB con reintento en caso de error
+            for intento in range(3):
+                try:
+                    db: Session = next(get_db())
+                    user = db.query(User).filter(User.email == email_anterior).first()
+                    break
+                except Exception as db_error:
+                    print(f"⚠️ Error DB en intento {intento+1}: {db_error}")
+                    time.sleep(2)
+            else:
+                print("❌ No se pudo conectar a la base después de varios intentos.")
+                continue
+            
             if not user:
                 print(f"⚠️ Usuario no encontrado: {email_anterior}")
                 continue
@@ -106,6 +118,7 @@ def consume_user_updated():
                         print(f"⚠️ Email ya existe: {update['email']}")
                         continue
                     user.email = update['email']
+           
                 
             if 'username' in update:
                 user.username = update['username']

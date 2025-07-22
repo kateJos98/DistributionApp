@@ -9,10 +9,8 @@ resource "aws_instance" "nginx_gateway" {
     Name = var.name
   }
 
-  dynamic "user_data" {
-    for_each = var.user_data != "" ? [1] : []
-    content {
-      content = var.user_data
-    }
-  }
+  user_data = templatefile("${path.module}/templates/user_data.tpl", {
+    auth_login_ip          = var.auth_login_ip
+    authorization_login_ip = var.authorization_login_ip
+  })
 }

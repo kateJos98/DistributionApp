@@ -3,7 +3,7 @@ name: Deploy Login Microservices to EC2
 on:
   push:
     branches:
-      - test
+      - test2
   workflow_dispatch:
 
 jobs:

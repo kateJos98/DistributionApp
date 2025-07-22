@@ -8,4 +8,4 @@ sudo systemctl enable docker
 # docker login -u <usuario> -p <contraseña>
 
 docker pull katyjoseth719/authorization-service:latest
-docker run -d -p 8002:8002 --name authorization-service katyjoseth719/authorization-login:latest
+docker run -d -p 8002:8002 --name authorization-service katyjoseth719/authorization-service:latest

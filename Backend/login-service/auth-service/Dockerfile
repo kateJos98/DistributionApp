@@ -15,4 +15,4 @@ COPY . .
 COPY wait-for-it.sh /wait-for-it.sh
 RUN chmod +x /wait-for-it.sh
 
-CMD ["/wait-for-it.sh", "kafka:9092", "--timeout=30", "--strict", "--", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/wait-for-it.sh", "54.243.205.146:9092", "--timeout=30", "--strict", "--", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

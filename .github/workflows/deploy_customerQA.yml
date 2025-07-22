@@ -1,0 +1,95 @@
+name: Deploy Customer Microservices to EC2
+
+on:
+  push:
+    branches:
+      - test2  
+
+jobs:
+  build_and_push_images:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Create Customer Microservice
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Backend/customer_service/Create_Customer
+          file: ./Backend/customer_service/Create_Customer/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
+
+      - name: Build and push Delete Customer Microservice
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Backend/customer_service/Delete_Customer
+          file: ./Backend/customer_service/Delete_Customer/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
+
+  deploy_to_ec2:
+    name: Deploy Docker Containers to EC2
+    runs-on: ubuntu-latest
+    needs: build_and_push_images
+
+    steps:
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST_CUSTOMER_TEST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            # Instalar Docker si no está presente
+            if ! command -v docker &> /dev/null; then
+              sudo apt update -y
+              sudo apt install -y docker.io
+              sudo systemctl start docker
+              sudo systemctl enable docker
+            fi
+
+            # Crear archivo .env (usado por ambos contenedores)
+            cat <<EOF > .env
+            DB_HOST=${{ secrets.MYSQL }}
+            DB_PORT=3306
+            DB_NAME=customer_db
+            DB_USER=root
+            DB_PASSWORD=secret
+            KAFKA_BROKER=${{ secrets.KAFKA }}:9092
+            KAFKA_TOPIC=customer_created
+            KAFKA_TOPIC_DELETE=customer_deleted
+            AUTH_SERVICE_URL=http://${{ secrets.EC2_AUTH_SERVICE }}:8002/validate-role
+            EOF
+
+            # Detener y eliminar contenedores previos
+            docker stop create-customer delete-customer || true
+            docker rm create-customer delete-customer || true
+
+            # Descargar las últimas imágenes
+            docker pull ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
+
+            # Ejecutar los contenedores
+            docker run -d --name create-customer --env-file .env -p 8003:8003 ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
+            docker run -d --name delete-customer --env-file .env -p 8004:8004 ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
+
+             
+     

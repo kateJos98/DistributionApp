@@ -88,7 +88,7 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
 
             # Ejecutar los contenedores
-            docker run -d --restart unless-stopped --name create-customer --env-file .env -p 8003:8003 ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
+            docker run -d --restart unless-stopped --name create-customer --env-file .env -p 8003:80 ${{ secrets.DOCKER_USERNAME }}/create-customer:latest
             docker run -d --restart unless-stopped --name delete-customer --env-file .env -p 8004:8004 ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
 
              

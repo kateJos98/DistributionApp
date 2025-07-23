@@ -66,7 +66,7 @@ jobs:
               sudo systemctl enable docker
             fi
 
-            # Crear archivo .env (usado por ambos contenedores)
+            # Crear archivo .env 
             cat <<EOF > .env
             DB_HOST=${{ secrets.MYSQL }}
             DB_PORT=3307
@@ -98,7 +98,7 @@ jobs:
             docker run -d --restart unless-stopped \
               --name delete-customer \
               --network app-network \
-              -v /home/ubuntu/.env:/var/www/html/.env \
+              --env-file /home/ubuntu/.env \
               -p 8004:80 \
               ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
                 

@@ -1,11 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends
+from urllib import response
+from fastapi import APIRouter, HTTPException, Depends, Response
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from database import Base, engine, get_db
 from models.user import User
 from schemas.user_schema import LoginRequest
 from services.jwt_service import create_access_token
-import requests
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -21,12 +21,20 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
     access_token = create_access_token({"sub": user.email, "role": user.role})
+    
+     # Poner token JWT en cookie segura y HttpOnly
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,            # Solo para HTTPS en producción
+        samesite="lax",         # Para prevenir CSRF en cierto nivel
+        max_age=60*60*24 * 7    # duración de la cookie, 7 días
+    )
    
 
     return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": user.username,
+        "message": "Inicio de sesión exitoso",
         "email":user.email,
         "role": user.role
     }

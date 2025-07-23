@@ -24,7 +24,7 @@ app = FastAPI()
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 if ENVIRONMENT == "development":
-    origins = ["*"]
+    origins = ["http://localhost:5174/"]
 else:
     # 🛡️ SOLO tu frontend real en producción
     origins = ["https://mi-frontend.com"]
@@ -32,7 +32,7 @@ else:
 # CORS para permitir frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

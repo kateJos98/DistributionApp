@@ -3,7 +3,7 @@ name: Deploy Login Microservices to EC2
 on:
   push:
     branches:
-      - test2
+      - test
   workflow_dispatch:
 
 jobs:
@@ -33,10 +33,10 @@ jobs:
     needs: build_and_push_images
 
     steps:
-    - name: Deploy to EC2
+    - name: Deploy auth-service to EC2
       uses: appleboy/ssh-action@v1.0.0
       with:
-        host: ${{ secrets.EC2_HOST_LOGIN_TEST }}
+        host: ${{ secrets.EC2_HOST_AUTH_TEST }}
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         port: 22
@@ -50,13 +50,37 @@ jobs:
           docker network create app-network || true
 
           # Parar y eliminar contenedores antiguos
-          sudo docker stop auth-service authorization-service || true
-          sudo docker rm auth-service authorization-service || true
+          sudo docker stop auth-service  || true
+          sudo docker rm auth-service  || true
 
           # Descargar imágenes
           sudo docker pull ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+
+          # Ejecutar contenedores
+          sudo docker run -d --restart unless-stopped --name auth-service --env-file .env-auth --network app-network -p 8001:8000 ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+
+    - name: Deploy authorization-service to EC2
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.EC2_HOST_AUTHORIZATION_TEST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script: |
+          sudo apt update -y
+          sudo apt install -y docker.io
+          sudo systemctl start docker
+          sudo systemctl enable docker
+
+          # Crear red si no existe
+          docker network create app-network || true
+
+          # Parar y eliminar contenedores antiguos
+          sudo docker stop authorization-service || true
+          sudo docker rm authorization-service || true
+
+          # Descargar imágenes
           sudo docker pull ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
 
           # Ejecutar contenedores
-          sudo docker run -d --name auth-service --network app-network -p 8001:8000 --env-file /home/ubuntu/.env-auth ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-          sudo docker run -d --name authorization-service --network app-network -p 8002:8002 --env-file /home/ubuntu/.env-authorization ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest
+          sudo docker run -d --restart unless-stopped --name authorization-service --network app-network -p 8002:8002 --env-file /home/ubuntu/.env-authorization ${{ secrets.DOCKER_USERNAME }}/authorization-service:latest

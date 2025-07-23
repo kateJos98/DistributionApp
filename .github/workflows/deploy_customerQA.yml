@@ -99,6 +99,6 @@ jobs:
               --name delete-customer \
               --network app-network \
               --env-file /home/ubuntu/.env \
-              -p 8004:80 \
+              -p 8004:8004 \
               ${{ secrets.DOCKER_USERNAME }}/delete-customer:latest
                 

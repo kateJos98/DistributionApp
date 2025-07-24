@@ -115,8 +115,8 @@ const Login = () => {
       setError("");
       saveEmail(email);
 
-      //const roleData = await validateRole();
-      //const role = roleData?.role;
+      const roleData = await validateRole();
+      const role = roleData?.role;
       alert("Login exitoso 🎉");
       // Redirigir según rol
       if (role === "admin") navigate("/dashboard/admin");

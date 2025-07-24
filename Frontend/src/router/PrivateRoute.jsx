@@ -8,7 +8,7 @@ export default function PrivateRoute({ allowedRoles }) {
   useEffect(() => {
     const checkAccess = async () => {
       try {
-        const data = await validateRole();
+        //const data = await validateRole();
         const userRole = data.role;
 
         if (allowedRoles.includes(userRole)) {

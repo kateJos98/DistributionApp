@@ -1,14 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
-import RegisterCustomer from './pages/RegisterCustomer';
+import RegisterCustomer from "./pages/RegisterCustomer";
 import SelectRegister from "./pages/SelectRegister";
-import PrivateRoute from './router/PrivateRoute';
+import PrivateRoute from "./router/PrivateRoute";
 import ClienteDashboard from "./pages/dashboard/cliente/ClienteDashboard";
 import PerfilCliente from "./pages/dashboard/cliente/views/PerfilCliente";
 import EditarPerfil from "./pages/dashboard/cliente/views/EditarPerfil";
 import UbicacionCliente from "./pages/dashboard/cliente/views/UbicacionCliente";
 import BuscarRepartidor from "./pages/dashboard/cliente/views/BuscarRepartidor";
-import { Roles } from './constants/roles';
+import AdminDashboard from "./pages/dashboard/admin/AdminDashboard"; // Asegúrate de tenerlo
 
 function App() {
   return (
@@ -20,8 +20,12 @@ function App() {
         <Route path="/SelectRegister" element={<SelectRegister />} />
 
         {/* Protegidas por rol */}
-        <Route element={<PrivateRoute allowedRoles={[Roles.CLIENTE]} />}>
-          <Route path="/cliente" element={<ClienteDashboard />}>
+        <Route element={<PrivateRoute expectedRole="admin" />}>
+          <Route path="/dashboard/admin" element={<AdminDashboard />} />
+        </Route>
+
+        <Route element={<PrivateRoute expectedRole="cliente" />}>
+          <Route path="/dashboard/cliente" element={<ClienteDashboard />}>
             <Route index element={<PerfilCliente />} />
             <Route path="perfil" element={<PerfilCliente />} />
             <Route path="editar" element={<EditarPerfil />} />

@@ -1,10 +1,18 @@
-export const validateUserRole = async () => {
-  const response = await fetch("http://3.214.52.43:8002/validate-role", {
-    method: "GET",
-    credentials: "include",
-  });
+export const validateRole = async () => {
+  try {
+    const response = await fetch("http://23.22.169.248:8002/validate-role", {
+      method: "GET",
+      credentials: "include", // <- para enviar cookie del token
+    });
 
-  if (!response.ok) throw new Error("Token inválido");
+    if (!response.ok) {
+      throw new Error("No autorizado");
+    }
 
-  return await response.json();
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error al validar rol:", error);
+    throw error;
+  }
 };

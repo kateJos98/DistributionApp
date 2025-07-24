@@ -3,38 +3,61 @@ import { login } from "../services/authService";
 import { validateRole } from "../services/authorizationService";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function Login() {
+const Login = () => {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [checkingSession, setCheckingSession] = useState(true);
 
   // Para autocompletado
   const [emailSuggestions, setEmailSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
-  const navigate = useNavigate();
   const suggestionsRef = useRef(null);
 
-  // Cargar emails guardados en localStorage
+
+  // Verifica si ya hay sesión activa
   useEffect(() => {
-    const savedEmails = JSON.parse(localStorage.getItem("savedEmails") || "[]");
-    setEmailSuggestions(savedEmails);
-  }, []);
+    const checkSession = async () => {
+      try {
+        const data = await validateRole();
+        const role = data?.role || "";
+        if (role === "admin") navigate("/dashboard/admin");
+        else if (role === "cliente") navigate("/dashboard/cliente");
+        else if (role === "repartidor") navigate("/dashboard/repartidor");
+      } catch {
+        // no hay sesión activa
+      } finally {
+        setCheckingSession(false);
+      }
+    };
+    checkSession();
+  }, [navigate]);
 
-  // Función para filtrar emails sugeridos según input
-  const filterSuggestions = (input) => {
-    if (!input) return [];
-    return emailSuggestions.filter((e) =>
-      e.toLowerCase().startsWith(input.toLowerCase())
+  // Mostrar mensaje mientras valida sesión
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p className="text-xl font-semibold text-gray-700 animate-pulse">
+          Verificando sesión...
+        </p>
+      </div>
     );
-  };
+  }
 
+  // Manejo cambios input email + filtrado sugerencias
   const handleEmailChange = (e) => {
     const input = e.target.value;
     setEmail(input);
+
     if (input.length > 0) {
-      const filtered = filterSuggestions(input);
+      const savedEmails = JSON.parse(localStorage.getItem("savedEmails") || "[]");
+      const filtered = savedEmails.filter((email) =>
+        email.toLowerCase().startsWith(input.toLowerCase())
+      );
       setFilteredSuggestions(filtered);
       setShowSuggestions(true);
       setActiveSuggestionIndex(-1);
@@ -44,7 +67,7 @@ export default function Login() {
     }
   };
 
-  // Manejo teclado para selección con flechas y enter
+  // Manejo teclado para selección de sugerencias
   const handleKeyDown = (e) => {
     if (!showSuggestions) return;
 
@@ -68,7 +91,7 @@ export default function Login() {
     }
   };
 
-  // Cuando se clickea una sugerencia
+  // Click en sugerencia
   const handleSuggestionClick = (suggestion) => {
     setEmail(suggestion);
     setShowSuggestions(false);
@@ -84,42 +107,30 @@ export default function Login() {
     }
   };
 
-  // Validar sesión al cargar la página
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const data = await validateRole();
-        if (data.role === "admin") navigate("/admin");
-        else if (data.role === "cliente") navigate("/cliente");
-        else if (data.role === "repartidor") navigate("/repartidor");
-        else navigate("/");
-      } catch {
-        // No autenticado, queda en login
-      }
-    };
-    checkSession();
-  }, [navigate]);
-
+  // Enviar formulario login
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const data = await login(email, password);
       setError("");
-      saveEmail(email); // Guardamos el email exitoso
-      alert("Login exitoso 🎉");
+      saveEmail(email);
 
-      if (data.role === "admin") navigate("/admin-dashboard");
-      else if (data.role === "cliente") navigate("/cliente");
-      else if (data.role === "repartidor") navigate("/repartidor-dashboard");
+      //const roleData = await validateRole();
+      //const role = roleData?.role;
+      alert("Login exitoso 🎉");
+      // Redirigir según rol
+      if (role === "admin") navigate("/dashboard/admin");
+      else if (role === "cliente") navigate("/dashboard/cliente");
+      else if (role === "repartidor") navigate("/dashboard/repartidor");
       else navigate("/");
-    } catch (err) {
+    } catch {
       setError("Credenciales inválidas o error de conexión");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-sky-200 to-blue-300">
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
         <div className="w-full max-w-md bg-white shadow-md rounded-lg p-8">
           <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
             Iniciar Sesión
@@ -139,12 +150,14 @@ export default function Login() {
               />
               {showSuggestions && filteredSuggestions.length > 0 && (
                 <ul
-                  style={{
+                   style={{
                     position: "absolute",
                     top: "100%",
                     left: 0,
                     right: 0,
                     border: "1px solid #ccc",
+                    borderRadius: "0.375rem", // <-- bordes redondeados
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)", // <-- sombra suave
                     backgroundColor: "white",
                     listStyleType: "none",
                     margin: 0,
@@ -201,7 +214,9 @@ export default function Login() {
             </Link>
           </p>
         </div>
-      </div>
+       </div>
     </div>
   );
-}
+};
+
+export default Login;

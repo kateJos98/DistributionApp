@@ -28,7 +28,7 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
         value=access_token,
         httponly=True,
         secure=False,            # Solo para HTTPS en producción
-        samesite="lax",         # Para prevenir CSRF en cierto nivel
+        samesite="None",         # Para prevenir CSRF en cierto nivel
         max_age=60*60*24 * 7    # duración de la cookie, 7 días
     )
 

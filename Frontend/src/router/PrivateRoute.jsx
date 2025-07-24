@@ -1,29 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
+import { validateRole } from "../services/authorizationService"; // asegúrate que esté exportado
 
-// Function to get token and role from localStorage
-const getAuth = () => {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
-  return { token, role };
-};
-
-/**
- * Component that protects routes according to role
- * @param {Array} allowedRoles -Ejemplo: [Roles.ADMIN], [Roles.CLIENTE]
- */
 export default function PrivateRoute({ allowedRoles }) {
-  const { token, role } = getAuth();
+  const [authorized, setAuthorized] = useState(null); // null = en validación
 
-  if (!token) {
-    // Not authenticated
-    return <Navigate to="/" />;
-  }
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const data = await validateRole(); 
+        const userRole = data.role;
 
-  if (!allowedRoles.includes(role)) {
-    // Unauthorized
-    return <Navigate to="/" />;
-  }
+        if (allowedRoles.includes(userRole)) {
+          setAuthorized(true);
+        } else {
+          setAuthorized(false);
+        }
+      } catch (err) {
+        setAuthorized(false);
+      }
+    };
+
+    checkAccess();
+  }, [allowedRoles]);
+
+  if (authorized === null) return <p>Cargando...</p>;
+  if (!authorized) return <Navigate to="/" />;
 
   return <Outlet />;
 }

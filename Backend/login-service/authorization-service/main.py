@@ -10,10 +10,10 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 app = FastAPI()
 if ENVIRONMENT == "development":
-    origins = ["http://localhost:5174/"]
+    origins = ["http://localhost:5174"]
 else:
     # REEMPLAZAR con dominio real del frontend
-    origins = ["http://localhost:5174/"]
+    origins = ["http://localhost:5174"]
 # CORS
 app.add_middleware(
     CORSMiddleware,

@@ -1,42 +1,40 @@
 import React, { useState, useEffect } from "react";
 import { login } from "../services/authService";
+import { validateRole } from "../services/authorizationService";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [token, setToken] = useState("");
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-
-    if (token && role) {
-      if (role === "admin") navigate("/cliente-dashboard");
-      else if (role === "cliente") navigate("/cliente-dashboard");
-      else if (role === "repartidor") navigate("/repartidor-dashboard");
-    }
+    const checkSession = async () => {
+      try {
+        const data = await validateRole(); // Consulta backend con cookie
+        if (data.role === "admin") navigate("/admin-dashboard");
+        else if (data.role === "cliente") navigate("/cliente-dashboard");
+        else if (data.role === "repartidor") navigate("/repartidor-dashboard");
+        else navigate("/");
+      } catch {
+        // No autenticado, queda en login
+      }
+    };
+    checkSession();
   }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const data = await login(email, password);
-      const { access_token, role } = data;
-
-      localStorage.setItem("token", access_token);
-      localStorage.setItem("role", role);
-
-      setToken(access_token);
       setError("");
       alert("Login exitoso 🎉");
 
-      if (role === "admin") navigate("/cliente-dashboard");
-      else if (role === "cliente") navigate("/cliente");
-      else if (role === "repartidor") navigate("/repartidor-dashboard");
+      if (data.role === "admin") navigate("/admin-dashboard");
+      else if (data.role === "cliente") navigate("/cliente-dashboard");
+      else if (data.role === "repartidor") navigate("/repartidor-dashboard");
       else navigate("/");
     } catch (err) {
       setError("Credenciales inválidas o error de conexión");
@@ -87,17 +85,6 @@ export default function Login() {
             Regístrate aquí
           </Link>
         </p>
-
-        {token && (
-          <div className="mt-4">
-            <p className="text-sm font-medium text-gray-700">Token:</p>
-            <textarea
-              value={token}
-              readOnly
-              className="w-full h-20 p-2 border rounded bg-gray-100"
-            />
-          </div>
-        )}
       </div>
     </div>
   );

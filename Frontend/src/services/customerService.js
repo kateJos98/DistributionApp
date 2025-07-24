@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8003'; //create-customer< |
+const API_URL = 'http://localhost:8003'; //create-customer |
 const UPDL_API = 'http://localhost:8006'; // update-location-customer
 const VIEW_API = 'http://localhost:8005'; // view-customer
 const DEL_API = 'http://localhost:8004'; // delete-customer

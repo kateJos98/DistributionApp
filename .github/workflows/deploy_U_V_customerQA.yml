@@ -75,6 +75,10 @@ jobs:
             DB_PASSWORD=${{ secrets.DB_PASSWORD_MYSQL }}
             KAFKA_BROKER=${{ secrets.KAFKA }}:9092
             AUTH_SERVICE_URL=http://${{ secrets.EC2_HOST_AUTH_TEST }}:8002/validate-role
+            NODE_ENV=development
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            ALGORITHM=${{ secrets.ALGORITHM }}
+
             EOF
 
             # Detener y eliminar contenedores previos

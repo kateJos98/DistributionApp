@@ -6,7 +6,7 @@ async function getCustomer(req, res) {
     // Obtener token desde cookie o Authorization header
     let token = req.cookies?.access_token;
 
-    if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+    if (!token || req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
       token = req.headers.authorization.split(" ")[1];
     }
 

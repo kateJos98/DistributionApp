@@ -94,7 +94,7 @@ class CustomerController {
 
     private static function validateTokenWithAuthService(string $token): array {
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "http://authorization-service:8002/validate-role");
+        curl_setopt($ch, CURLOPT_URL, getenv('AUTH_SERVICE_URL'));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             "Authorization: Bearer " . $token
         ]);

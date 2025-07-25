@@ -11,13 +11,25 @@ use Firebase\JWT\Key;
 
 class CustomerController {
     public static function handleUpdate(): void {
-        $headers = getallheaders();
-        if (!isset($headers['Authorization'])) {
+        $token = null;
+    
+        // Verificar si hay token en cookies
+        if (isset($_COOKIE['token'])) {
+            $token = $_COOKIE['token'];
+        } else {
+            // Si no hay cookie, verificar en headers
+            $headers = getallheaders();
+            if (isset($headers['Authorization'])) {
+                $token = str_replace("Bearer ", "", $headers['Authorization']);
+            }
+        }
+
+        // Validar existencia del token
+        if (!$token) {
             http_response_code(401);
             echo json_encode(["error" => "No se envió el token"]);
             return;
         }
-        $token = str_replace("Bearer ", "", $headers['Authorization']);
 
         try {
             // Validar token con el authorization-service

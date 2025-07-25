@@ -6,8 +6,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 const app = express();
-app.use(bodyParser.json());
 app.use(cookieParser());
+app.use(bodyParser.json());
+
 
 console.log('🔐 AUTH_SERVICE_URL:', process.env.AUTH_SERVICE_URL);
 

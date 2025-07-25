@@ -2,11 +2,21 @@ import axios from 'axios';
 import { CustomerService } from '../Services/customer.service.js';
 import { sendCustomerDeletedEvent } from '../kafka/producer.js';
 
+
 export class CustomerController {
   static async handleDelete(req, res) {
     try {
-      const token = req.cookies.access_token || req.headers.authorization?.split(' ')[1];
-      if (!token) return res.status(401).json({ error: 'Token requerido' });
+      
+      let token = req.cookies?.access_token;
+      console.log('Cookies recibidas:', req.cookies);
+      if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+        token = req.headers.authorization.split(' ')[1];
+      }
+
+      if (!token) {
+        return res.status(401).json({ error: 'Token requerido' });
+      }
+
       const { data } = await axios.get(
         process.env.AUTH_SERVICE_URL,
         { headers: { Authorization: `Bearer ${token}` } }

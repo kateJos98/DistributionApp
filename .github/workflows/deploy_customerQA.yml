@@ -76,7 +76,7 @@ jobs:
             KAFKA_BROKER=${{ secrets.KAFKA }}:9092
             KAFKA_TOPIC=customer_created
             KAFKA_TOPIC_DELETE=customer_deleted
-            AUTH_SERVICE_URL=http://${{ secrets.EC2_AUTH_SERVICE }}:8002/validate-role
+            AUTH_SERVICE_URL=http://${{ secrets.EC2_HOST_AUTH_TEST }}:8002/validate-role
             EOF
 
             # Detener y eliminar contenedores previos

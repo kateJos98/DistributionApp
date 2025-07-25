@@ -10,6 +10,7 @@ export class CustomerController {
       const { data } = await axios.get(
         process.env.AUTH_SERVICE_URL,
         { headers: { Authorization: `Bearer ${token}` } }
+        
       );
 
       const email = data.email;
@@ -30,7 +31,11 @@ export class CustomerController {
       }
 
     } catch (error) {
-      console.error('❌ Error al eliminar usuario:', error?.response?.data || error.message);
+      console.error('❌ Error al eliminar usuario:', {
+        message: error.message,
+        response: error?.response?.data,
+        stack: error.stack
+      });
       res.status(500).json({ error: 'Error interno al eliminar' });
     }
   }

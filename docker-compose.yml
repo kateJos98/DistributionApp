@@ -8,16 +8,6 @@ services:
     depends_on:
       - auth-service
       - authorization-service
-      - create-customer
-      - delete-customer
-      - update-customer
-      - view-customer
-      - customer-location
-      - create-delivery
-      - update-delivery
-      - delete-delivery
-      - assign-delivery
-      - find-delivery
     networks:
       - app-network
 

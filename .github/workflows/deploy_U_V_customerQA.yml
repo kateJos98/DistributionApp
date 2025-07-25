@@ -94,13 +94,13 @@ jobs:
             --name update-customer \
             --network app-network \
             -v /home/ubuntu/.env:/var/www/html/.env \
-            -p 8003:80 \
+            -p 8010:80 \
             ${{ secrets.DOCKER_USERNAME }}/update-customer:latest
 
             docker run -d --restart unless-stopped \
               --name view-customer \
               --network app-network \
               --env-file /home/ubuntu/.env \
-              -p 8004:8004 \
+              -p 8005:8005 \
               ${{ secrets.DOCKER_USERNAME }}/view-customer:latest
                 

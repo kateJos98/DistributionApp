@@ -106,6 +106,8 @@ class CustomerController {
     }
 
     private static function validateTokenWithAuthService(string $token): array {
+        error_log("🌐 Llamando a AUTH_SERVICE con token...");
+        
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, getenv('AUTH_SERVICE_URL'));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -114,12 +116,24 @@ class CustomerController {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         
         $response = curl_exec($ch);
+        if ($response === false) {
+            error_log("⚠️ cURL Error: " . curl_error($ch));
+        } else {
+            error_log("📥 Respuesta AUTH_SERVICE: HTTP " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . " - " . $response);
+        }
+
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        
+        curl_close($ch);
+
         if ($httpCode !== 200) {
             throw new \Exception("Token inválido o no autorizado");
         }
+        $decoded = json_decode($response, true);
+        if ($decoded === null) {
+            error_log("⚠️ json_decode falló: " . json_last_error_msg());
+            throw new \Exception("Error al decodificar respuesta JSON del auth-service");
+        }
         
-        return json_decode($response, true);
+        return $decoded;
     }
 }

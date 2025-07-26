@@ -93,7 +93,7 @@ jobs:
             docker run -d --restart unless-stopped \
             --name update-customer \
             --network app-network \
-            -v /home/ubuntu/.env:/var/www/html/.env \
+            -env-file /home/ubuntu/.env \
             -p 8010:80 \
             ${{ secrets.DOCKER_USERNAME }}/update-customer:latest
 

@@ -23,6 +23,9 @@ class CustomerController {
                 $token = str_replace("Bearer ", "", $headers['Authorization']);
             }
         }
+        // Debug: imprimir el token recibido
+        error_log("=== TOKEN RECIBIDO ===");
+        error_log($token);
 
         // Validar existencia del token
         if (!$token) {

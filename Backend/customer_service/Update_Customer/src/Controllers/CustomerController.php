@@ -32,7 +32,6 @@ class CustomerController {
             } else {
                 error_log("❌ No se recibió token ni por cookie ni por header.");
             }
-            }
         }
         
 

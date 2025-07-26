@@ -11,21 +11,30 @@ use Firebase\JWT\Key;
 
 class CustomerController {
     public static function handleUpdate(): void {
+        ini_set('log_errors', 1);
+        ini_set('display_errors', 0);
+        ini_set('error_log', '/proc/self/fd/2');
+
         $token = null;
     
         // Verificar si hay token en cookies
         if (isset($_COOKIE['token'])) {
             $token = $_COOKIE['token'];
+            // Debug: imprimir el token recibido
+            error_log("=== TOKEN RECIBIDO ===");
+            error_log($token);
         } else {
             // Si no hay cookie, verificar en headers
             $headers = getallheaders();
             if (isset($headers['Authorization'])) {
                 $token = str_replace("Bearer ", "", $headers['Authorization']);
+                error_log("✅ Token recibido por header: $token");
+            } else {
+                error_log("❌ No se recibió token ni por cookie ni por header.");
+            }
             }
         }
-        // Debug: imprimir el token recibido
-        error_log("=== TOKEN RECIBIDO ===");
-        error_log($token);
+        
 
         // Validar existencia del token
         if (!$token) {

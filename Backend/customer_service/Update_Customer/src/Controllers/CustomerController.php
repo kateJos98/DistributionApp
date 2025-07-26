@@ -44,7 +44,9 @@ class CustomerController {
 
         try {
             // Validar token con el authorization-service
+            error_log("🔍 Validando token con el AuthService...");
             $authResponse = self::validateTokenWithAuthService($token);
+            error_log("✅ Token validado correctamente");
             $userEmail = $authResponse['email']; // Email obtenido del token
             
             $input = json_decode(file_get_contents("php://input"), true);

@@ -91,10 +91,10 @@ jobs:
 
             # Ejecutar los contenedores
             docker run -d --restart unless-stopped \
-            --name update-customer \
-            --network app-network \
-            -env-file /home/ubuntu/.env \
-            -p 8010:80 \
+              --name update-customer \
+              --network app-network \
+              --env-file /home/ubuntu/.env \
+              -p 8010:80 \
             ${{ secrets.DOCKER_USERNAME }}/update-customer:latest
 
             docker run -d --restart unless-stopped \

@@ -108,8 +108,13 @@ class CustomerController {
     private static function validateTokenWithAuthService(string $token): array {
         error_log("🌐 Llamando a AUTH_SERVICE con token...");
         
+        $authServiceUrl = $_ENV['AUTH_SERVICE_URL'] ?? null;
+        if (!$authServiceUrl) {
+            throw new \Exception("AUTH_SERVICE_URL no está definido en el entorno");
+        }
+
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, getenv('AUTH_SERVICE_URL'));
+        curl_setopt($ch, CURLOPT_URL, $authServiceUrl);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             "Authorization: Bearer " . $token
         ]);

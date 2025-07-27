@@ -5,10 +5,10 @@ use PDO;
 
 class Database {
     public static function connect(): PDO {
-        $host = getenv('DB_HOST');
-        $db = getenv('DB_NAME');
-        $user = getenv('DB_USER');
-        $pass = getenv('DB_PASS');
+        $host = $_ENV['DB_HOST'] ?? 'localhost';
+        $db = $_ENV['DB_NAME'] ?? 'test';
+        $user = $_ENV['DB_USER'] ?? 'root';
+        $pass = $_ENV['DB_PASS'] ?? '';
 
         return new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION

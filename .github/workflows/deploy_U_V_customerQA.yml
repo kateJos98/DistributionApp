@@ -66,8 +66,12 @@ jobs:
               sudo systemctl enable docker
             fi
 
-            # Crear archivo .env 
-            cat <<EOF > .env
+            # Crear red si no existe
+            docker network inspect app-network >/dev/null 2>&1 || \
+              docker network create app-network
+
+            # Crear archivo .env temporal
+            cat <<EOF > /home/ubuntu/.env
             DB_HOST=${{ secrets.MYSQL }}
             DB_PORT=3307
             DB_NAME=customer_db
@@ -78,29 +82,28 @@ jobs:
             NODE_ENV=development
             SECRET_KEY=${{ secrets.SECRET_KEY }}
             ALGORITHM=${{ secrets.ALGORITHM }}
-
             EOF
 
-            # Detener y eliminar contenedores previos
+            # Detener y eliminar contenedores anteriores
             docker stop update-customer view-customer || true
             docker rm update-customer view-customer || true
 
-            # Descargar las últimas imágenes
+            # Descargar últimas imágenes
             docker pull ${{ secrets.DOCKER_USERNAME }}/update-customer:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/view-customer:latest
 
-            # Ejecutar los contenedores
+            # Ejecutar contenedor Update Customer
             docker run -d --restart unless-stopped \
               --name update-customer \
               --network app-network \
               --env-file /home/ubuntu/.env \
               -p 8010:80 \
-            ${{ secrets.DOCKER_USERNAME }}/update-customer:latest
+              ${{ secrets.DOCKER_USERNAME }}/update-customer:latest
 
+            # Ejecutar contenedor View Customer
             docker run -d --restart unless-stopped \
               --name view-customer \
               --network app-network \
               --env-file /home/ubuntu/.env \
               -p 8005:8005 \
               ${{ secrets.DOCKER_USERNAME }}/view-customer:latest
-                

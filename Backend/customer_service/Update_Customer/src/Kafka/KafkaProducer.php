@@ -5,7 +5,7 @@ use RdKafka\Producer;
 
 class KafkaProducer {
     public static function send(string $topicName, string $message): void {
-        $broker = getenv('KAFKA_BROKER');
+        $broker = $_ENV['KAFKA_BROKER'];
         $conf = new \RdKafka\Conf();
         $producer = new Producer($conf);
         $producer->addBrokers($broker);

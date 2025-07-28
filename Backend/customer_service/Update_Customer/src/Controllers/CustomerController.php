@@ -75,7 +75,9 @@ class CustomerController {
 
             // Guardar email anterior para actualización
             $emailAnterior = $existingCustomer['email'];
-
+            
+            error_log("📥 Datos recibidos para actualización:");
+            error_log(print_r($input, true));   
             // Actualizar en MySQL
             try {
                 $success = $service->updateCustomer($emailAnterior, $input);

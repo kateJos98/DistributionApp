@@ -59,6 +59,7 @@ class CustomerController {
                 echo json_encode(["error" => "Faltan campos requeridos"]);
                 return;
             }
+            error_log("🔎 Variable de entorno DB_HOST = " . getenv('DB_HOST'));
             error_log("✅ Conexión a la base de datos....");
             $pdo = Database::connect();
             error_log("✅ Conexión a la base de datos exitosa");

@@ -1,6 +1,6 @@
 export const validateRole = async () => {
   try {
-    const response = await fetch("http://3.214.52.43:8002/validate-role", {
+    const response = await fetch("http://3.227.175.211/validate-role", {
       method: "GET",
       credentials: "include", // <- para enviar cookie del token
     });

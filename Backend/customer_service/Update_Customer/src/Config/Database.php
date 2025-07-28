@@ -2,17 +2,16 @@
 namespace App\Config;
 
 use PDO;
-use Dotenv\Dotenv;
+use PDOException;
 
 class Database {
     public static function connect(): PDO {
-        $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
-        $dotenv->load();
-        $host = $_ENV['DB_HOST'];
-        $port = $_ENV['DB_PORT'];
-        $db = $_ENV['DB_NAME'];
-        $user = $_ENV['DB_USER'];
-        $pass = $_ENV['DB_PASS'];
+        
+        $host = getenv('DB_HOST');
+        $port = getenv('DB_PORT');
+        $db   = getenv('DB_NAME');
+        $user = getenv('DB_USER');
+        $pass = getenv('DB_PASS');
 
         error_log("🔧 Conectando a MySQL en $host:$port / DB: $db / User: $user");
         if (!$host || !$db) {

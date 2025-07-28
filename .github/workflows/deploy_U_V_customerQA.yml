@@ -78,7 +78,7 @@ jobs:
             DB_USER=root
             DB_PASSWORD=${{ secrets.DB_PASSWORD_MYSQL }}
             KAFKA_BROKER=${{ secrets.KAFKA }}:9092
-            AUTH_SERVICE_URL=http://${{ secrets.NGINX_GATEWAY }}:8002/validate-role
+            AUTH_SERVICE_URL=http://${{ secrets.NGINX_GATEWAY }}/validate-role
             NODE_ENV=development
             SECRET_KEY=${{ secrets.SECRET_KEY }}
             ALGORITHM=${{ secrets.ALGORITHM }}

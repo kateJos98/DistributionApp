@@ -18,8 +18,6 @@ COPY . .
 
 RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
 RUN composer install
-RUN composer require vlucas/phpdotenv
-
 
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite

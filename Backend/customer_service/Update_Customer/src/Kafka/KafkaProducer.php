@@ -6,6 +6,9 @@ use RdKafka\Producer;
 class KafkaProducer {
     public static function send(string $topicName, string $message): void {
         $broker = $_ENV['KAFKA_BROKER'];
+        if (!$broker) {
+            throw new \Exception("KAFKA_BROKER no definido en el entorno");
+        }
         $conf = new \RdKafka\Conf();
         $producer = new Producer($conf);
         $producer->addBrokers($broker);
@@ -16,10 +19,10 @@ class KafkaProducer {
         try {
             $producer->flush(5000);
             if (RD_KAFKA_RESP_ERR_NO_ERROR !== $producer->getOutQLen()) {
-                throw new \RuntimeException('Unable to flush messages');
+                throw new \RuntimeException('No se pudieron enviar todos los mensajes');
             }
         } catch (\Exception $e) {
-            // Loggear el error o manejarlo adecuadamente
+        
             error_log('Kafka error: ' . $e->getMessage());
 }
     }

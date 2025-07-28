@@ -73,7 +73,7 @@ jobs:
             # Crear archivo .env 
             cat > /home/ubuntu/.env <<EOF
             DB_HOST=${{ secrets.MYSQL }}
-            DB_PORT=3307
+            DB_PORT=3306
             DB_NAME=customer_db
             DB_USER=root
             DB_PASS=${{ secrets.DB_PASSWORD_MYSQL }}

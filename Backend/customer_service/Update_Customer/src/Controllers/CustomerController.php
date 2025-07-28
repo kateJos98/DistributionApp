@@ -60,7 +60,7 @@ class CustomerController {
                 "detalle" => $e->getMessage()
                 return;
             }
-
+            error_log("✅ Conexión a la base de datos....");
             $pdo = Database::connect();
             error_log("✅ Conexión a la base de datos exitosa");
             $repo = new CustomerRepository($pdo);

@@ -57,6 +57,7 @@ class CustomerController {
                 !isset($input['city']) || !isset($input['address'])) {
                 http_response_code(400);
                 echo json_encode(["error" => "Faltan campos requeridos"]);
+                "detalle" => $e->getMessage()
                 return;
             }
 
@@ -70,6 +71,7 @@ class CustomerController {
             if (!$existingCustomer) {
                 http_response_code(404);
                 error_log("❌ Cliente no encontrado en la base");
+                "detalle" => $e->getMessage()
                 return;
             }
 
@@ -84,6 +86,7 @@ class CustomerController {
                 error_log("🔥 Error en servicio de actualización: " . $e->getMessage());
                 http_response_code(500);
                 echo json_encode(["error" => "Error al actualizar cliente"]);
+                "detalle" => $e->getMessage()
                 return;
             }
 

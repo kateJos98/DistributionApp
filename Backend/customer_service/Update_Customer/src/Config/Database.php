@@ -2,9 +2,12 @@
 namespace App\Config;
 
 use PDO;
+use Dotenv\Dotenv;
 
 class Database {
     public static function connect(): PDO {
+        $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+        $dotenv->load();
         $host = $_ENV['DB_HOST'];
         $port = $_ENV['DB_PORT'];
         $db = $_ENV['DB_NAME'];
@@ -24,6 +27,7 @@ class Database {
             return $pdo;
         } catch (PDOException $e) {
             error_log("❌ Error de conexión a MySQL: " . $e->getMessage());
+
             throw $e;
         }
 

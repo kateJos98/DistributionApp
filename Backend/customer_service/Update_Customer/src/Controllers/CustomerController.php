@@ -57,7 +57,6 @@ class CustomerController {
                 !isset($input['city']) || !isset($input['address'])) {
                 http_response_code(400);
                 echo json_encode(["error" => "Faltan campos requeridos"]);
-                "detalle" => $e->getMessage()
                 return;
             }
             error_log("✅ Conexión a la base de datos....");
@@ -71,7 +70,6 @@ class CustomerController {
             if (!$existingCustomer) {
                 http_response_code(404);
                 error_log("❌ Cliente no encontrado en la base");
-                "detalle" => $e->getMessage()
                 return;
             }
 
@@ -86,7 +84,6 @@ class CustomerController {
                 error_log("🔥 Error en servicio de actualización: " . $e->getMessage());
                 http_response_code(500);
                 echo json_encode(["error" => "Error al actualizar cliente"]);
-                "detalle" => $e->getMessage()
                 return;
             }
 
@@ -115,7 +112,7 @@ class CustomerController {
     private static function validateTokenWithAuthService(string $token): array {
         error_log("🌐 Llamando a AUTH_SERVICE con token...");
         
-        $authServiceUrl = $_ENV['AUTH_SERVICE_URL'] ?? null;
+        $authServiceUrl = $_ENV['AUTH_SERVICE_URL'];
         if (!$authServiceUrl) {
             throw new \Exception("AUTH_SERVICE_URL no está definido en el entorno");
         }

@@ -24,6 +24,6 @@ class KafkaProducer {
         } catch (\Exception $e) {
         
             error_log('Kafka error: ' . $e->getMessage());
-}
+        }
     }
 }

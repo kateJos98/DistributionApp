@@ -61,6 +61,7 @@ class CustomerController {
             }
 
             $pdo = Database::connect();
+            error_log("✅ Conexión a la base de datos exitosa");
             $repo = new CustomerRepository($pdo);
             $service = new CustomerService($repo);
 
@@ -68,7 +69,7 @@ class CustomerController {
             $existingCustomer = $repo->findByEmail($userEmail);
             if (!$existingCustomer) {
                 http_response_code(404);
-                echo json_encode(["error" => "Cliente no encontrado"]);
+                error_log("❌ Cliente no encontrado en la base");
                 return;
             }
 
@@ -76,8 +77,11 @@ class CustomerController {
             $emailAnterior = $existingCustomer['email'];
 
             // Actualizar en MySQL
-            $success = $service->updateCustomer($emailAnterior, $input);
-            if (!$success) {
+            try {
+                $success = $service->updateCustomer($emailAnterior, $input);
+                error_log("🛠 Resultado de la actualización: " . ($success ? "éxito" : "fallo"));
+            } catch (\Exception $e) {
+                error_log("🔥 Error en servicio de actualización: " . $e->getMessage());
                 http_response_code(500);
                 echo json_encode(["error" => "Error al actualizar cliente"]);
                 return;

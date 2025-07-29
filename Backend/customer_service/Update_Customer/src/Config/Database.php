@@ -9,6 +9,8 @@ class Database {
     private static $connection = null;
 
     public static function connect() {
+        error_log("🔌 Iniciando conexión a la base de datos...");
+
         // Reutiliza la conexión si ya existe
         if (self::$connection !== null) {
             return self::$connection;
@@ -34,7 +36,7 @@ class Database {
             if (!$host || !$port || !$dbname || !$user || !$pass) {
                 throw new \Exception("❌ Faltan variables de entorno para conectar a la base de datos.");
             }
-
+            
             $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8";
             error_log("🌐 Conectando a la DB con DSN: $dsn");
 

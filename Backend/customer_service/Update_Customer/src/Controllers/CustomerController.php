@@ -37,6 +37,7 @@ class CustomerController {
             $token = $_COOKIE['token'];
             error_log("📦 Token recibido desde cookie");
         } else {
+            error_log("📦 Token no sea recibido desde cookie");
             $headers = getallheaders();
             if (isset($headers['Authorization'])) {
                 $token = str_replace("Bearer ", "", $headers['Authorization']);
